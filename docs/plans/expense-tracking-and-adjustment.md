@@ -24,6 +24,7 @@ This depends on #7 (a trip's currency and crew, [docs/plans/create-trip-invite.m
 - **Blocking new expenses on a closed trip.** That guard is #16's job ("Mark the trip as finished"); this ticket doesn't add a closed-trip check itself.
 - **Per-role permission gating** on who can log, edit, or remove an expense. Any trip member can, matching #8/#10/#12's existing precedent — there's no role-gated action in this app yet.
 - **Category icons or a configurable category list.** The fixed list below (see Constraints) is invented since neither the issue nor the design specifies one; extending it later is a one-line change, not a rework — same reasoning #7 already used for its trimmed currency list.
+- **Linking an expense back to the booking whose cost it represents.** #15's plan documents that a booking's (#12/#13) real cost gets logged here as a separate expense (e.g. category "Alojamiento"), but nothing ties the two records together — no `bookingId` on `Expense`, no reverse pointer on `Booking`. They stay two independently-entered records; if their "who's using it" lists ever drift apart, nothing catches it. Not modeled now since there's no real usage data yet to know if that drift is a real problem worth a schema change for — worth revisiting if it turns out to bite.
 
 ## Implementation Strategy
 
