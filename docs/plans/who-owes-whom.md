@@ -8,7 +8,9 @@ There's no design to build against here — a comment already on the issue confi
 
 An earlier comment on #15 said this ticket should split bookings using the "who's using it" field #12 introduces. That's superseded now: [#12/#13's plan](./booking-attribution-vouchers.md) shipped bookings as attribution/voucher records with no price of their own, and [#14's plan](./expense-tracking-and-adjustment.md) is what actually owns money — amount, who paid, who's using it — for everything in the trip, bookings included (a booking's real cost gets logged as a #14 expense, e.g. under the "Alojamiento" category). So this ticket reads exclusively from #14's expenses, never from bookings. A comment clarifying this is left on #15 alongside this plan.
 
-Per [docs/roadmap.md](../roadmap.md) this is Phase 6, needing #12 (crew/currency by way of #7, really) and #14 (the actual expense data) to exist first. It runs alongside #16 (mark trip finished) rather than after it — the two don't depend on each other.
+Per [docs/roadmap.md](../roadmap.md) this is Phase 6, needing #7 (crew/currency) and #14 (the actual expense data) to exist first. It runs alongside #16 (mark trip finished) rather than after it — the two don't depend on each other.
+
+**Open gap, not resolved by this plan:** this and #17's plan both describe their new tab as living "at the same level as #8's route panel and #9's map" — but neither #8's nor #9's plan actually defines a shared trip-level tab strip; those plans describe two separate screens connected by one-way buttons (`Ver el viaje` / `Editar ruta`). #16's plan separately assumes a "shared in-trip header" for its `Finalizar viaje` control. None of #8, #9, or any ADR specifies this shared trip-level shell (header + tabs). This plan is written as if it exists; if it doesn't by the time this ships, the shell itself (and where Ruta/Mapa/Balance/Resumen/Finalizar viaje all actually live together) needs a small design pass first — see the note left for Florencia on what's missing from the design.
 
 ## Scope
 
@@ -26,7 +28,7 @@ Per [docs/roadmap.md](../roadmap.md) this is Phase 6, needing #12 (crew/currency
 - **Tracking whether a suggested transfer actually happened.** This ticket only produces a live summary ("Juan needs to transfer $50 to María"); it doesn't let anyone mark a transfer as paid or keep a settlement ledger. If that's wanted later, it's a separate ticket.
 - **Freezing or snapshotting the balance at any point** (including when #16 closes a trip). The Balance tab always computes live off current data; if a frozen "final" snapshot is ever wanted, that's #17's concern, not this one.
 - **Any gating on #16's closed-trip state.** The Balance tab is visible and live whether the trip is open or closed. #15 and #16 don't depend on each other.
-- **Currency conversion.** Every expense amount #15 reads is already in the trip's own currency (#7's `Trip.currency`) by the time #14 hands it over — nothing here does its own conversion.
+- **Currency conversion.** #15 never converts currencies itself. An *adjusted* expense amount is already in the trip's own currency (#7's `Trip.currency`); a still-*pending* expense's original amount is counted at face value regardless of what currency it was actually logged in — the same numeric-face-value convention #14 already documents for a "Pendiente de ajuste" expense (see Constraints below), not a claim that every amount is already trip-currency.
 - **Per-role permission gating** on who can view the Balance tab. Any trip member can, matching every other screen's precedent so far.
 
 ## Implementation Strategy
