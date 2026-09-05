@@ -6,6 +6,8 @@
 
 Per [docs/roadmap.md](../roadmap.md) this is Phase 6, running alongside [#15](https://github.com/mimiquate/wonder_split/issues/15) (a separate, parallel plan) rather than after it — #16 only needs expenses to exist ([#14](./expense-tracking-and-adjustment.md)), not #15's settle-up math. It also touches [#12/#13](./booking-attribution-vouchers.md)'s add-booking function, since a finished trip should stop new bookings too, not just new expenses. [#17](https://github.com/mimiquate/wonder_split/issues/17) (final trip summary), a later plan, will depend on the closed state this ticket introduces — it isn't built here.
 
+**Open gap, not resolved by this plan:** this plan puts "Finalizar viaje" in "the trip's shared in-trip header (the same header #8's route screen and #9's map screen already use)" — but #8's and #9's plans describe those as two separate screens connected by one-way buttons (`Ver el viaje` / `Editar ruta`), not a single shared header. #15 and #17 independently assume the same kind of shared trip-level shell for their own new tabs. None of #8, #9, or any ADR actually specifies this shell. Needs a small design pass to define it (and where "Finalizar viaje" sits in it) before implementation if it doesn't exist by then.
+
 ## Scope
 
 - A trip gains a finished state (closed, with a timestamp) alongside its existing name/dates/currency ([#7](./create-trip-invite.md)).
