@@ -1,0 +1,3 @@
+# City search backed by a live geocoding API, not a bundled gazetteer
+
+The design's own "buscá una ciudad" search only has to work against the mock's 10 hardcoded Iberian cities; the real route builder needs to search real cities anywhere in the world and return a name, country, and lat/lon for each. We call a live geocoding API (Mapbox's Geocoding API — generous free tier, forward place search, pairs with the `d3-geo` stack ADR 0002 already put in the map) instead of bundling a static worldwide city dataset. This costs an API key/quota to manage and a network round-trip per keystroke (debounced, like a typeahead), but gets full worldwide coverage — including small towns a curated dataset would miss — without maintaining and periodically refreshing our own gazetteer.
