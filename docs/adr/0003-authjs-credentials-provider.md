@@ -1,0 +1,5 @@
+# Auth.js with Credentials, not a hosted-UI provider
+
+The auth design (`AuthScreen.dc.html`) specs a fully custom, pixel-exact dark Ruta Terracota UI for every auth state — login, signup, email-code verification, forgot/reset password, rate-limited, session-expired — which rules out a provider whose sign-in pages you don't control (Clerk's hosted pages, Auth0 Universal Login, Cognito hosted UI) short of fighting their theming APIs. We use Auth.js (NextAuth v5) instead: it gives us database-session handling, CSRF protection, and a provider model for free, while leaving 100% of the UI as our own React screens — which we have to build anyway to match the design. The email/password flow, the 6-digit verification code, and password reset aren't things Auth.js ships out of the box; those are our own API routes layered behind Auth.js's Credentials provider.
+
+Only the Credentials provider ships in this first pass — Google sign-in is deliberately deferred (see the auth plan's non-goals), not ruled out technically. Auth.js's provider model means adding Google later is a config addition, not a rework of this foundation.
