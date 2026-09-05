@@ -8,6 +8,8 @@ This is the last ticket in the [roadmap](../roadmap.md)'s Phase 4-7 sequence —
 
 This also isn't a new calculation from scratch. #15's balance module (see [docs/plans/who-owes-whom.md](./who-owes-whom.md) Phase 1) already computes, for every person, what they paid and their share of what they consumed, on the way to netting those two into a balance. "Final cost per person" here is that same consumed-share number, just surfaced on its own instead of netted against what they paid — a different question ("what did this trip cost me") than #15's ("what do I still owe or get owed"). This plan extends #15's calculation module rather than re-deriving the same sum a second time.
 
+**Open gap, not resolved by this plan (same one #15 flags):** this plan describes the Resumen tab as living "at the same level as #8's route panel, #9's map, and #15's Balance tab" — but no plan (#8, #9, #15, or #16) or ADR actually defines that shared trip-level tab strip/header. It's assumed here, not specified. Needs a small design pass before implementation if it doesn't already exist by then.
+
 ## Scope
 
 - A new "Resumen" tab on the trip hub, at the same level as #8's route panel, #9's map, and #15's Balance tab — always visible, whether the trip is open or finished.
