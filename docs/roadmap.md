@@ -21,3 +21,5 @@ The "Armar el viaje" Claude Design project (https://claude.ai/design/p/2e3f39d2-
 **Phase 7 (sequential, needs #15 + #16):** #17 Final trip summary — needs both the closed-trip state and the balance numbers
 
 If you've got people to spare, Phase 4 is the widest parallel batch (three independent tracks) — that's the best place to put extra hands once #7 → #8 → #10 are in.
+
+**Deferred (needs #12/#13 + #14 shipped, blocks nothing):** [#37](https://github.com/mimiquate/wonder_split/issues/37) Link a booking to the expense that represents its real cost — #14's plan left this an open Non-goal since there's no real usage data yet to know if the drift risk (a booking's "who's using it" silently diverging from its logged expense's) is worth a schema change for. Revisit once #12/#13 and #14 have real trip data to judge it against; not on the critical path for #15/#16/#17.
