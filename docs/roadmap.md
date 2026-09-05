@@ -12,7 +12,9 @@ The "Armar el viaje" Claude Design project (https://claude.ai/design/p/2e3f39d2-
 
 **Phase 3 (parallel, both need #8):** #9 Trip on the map · #10 Zoom into each city
 
-**Phase 4 (parallel, all need #10):** #23 Notes per city · (#12 Who shows their face vs. who puts the card + #13 The voucher folder — build these two together, they share one dialog) · #11 Status board (can actually start as soon as #8 exists, for stop states, and just gets extended once #12/#13 land, for voucher states)
+**Phase 4 (parallel, all need #10):** #23 Notes per city · (#12 Who shows their face vs. who puts the card + #13 The voucher folder — build these two together, they share one dialog)
+
+~~#11 Status board~~ — closed as not planned: no kanban/board screen exists anywhere in the design, only #8's per-stop status chip (thinking/urgent/booked), which already ships as part of #8. Reopen only if a board screen gets designed later.
 
 **Phase 5 (needs #7 + #10):** #14 Card statement adjustment — the implementation plan found that bookings (#12/#13) carry no price of their own, so #14 owns the entire expense data model from scratch rather than extending one #12 introduces; a booking's real cost gets logged as a #14 expense instead (e.g. under an "Alojamiento" category)
 
