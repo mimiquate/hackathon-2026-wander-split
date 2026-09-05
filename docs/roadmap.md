@@ -14,9 +14,9 @@ The "Armar el viaje" Claude Design project (https://claude.ai/design/p/2e3f39d2-
 
 **Phase 4 (parallel, all need #10):** #23 Notes per city · (#12 Who shows their face vs. who puts the card + #13 The voucher folder — build these two together, they share one dialog) · #11 Status board (can actually start as soon as #8 exists, for stop states, and just gets extended once #12/#13 land, for voucher states)
 
-**Phase 5 (needs #12):** #14 Card statement adjustment — it's an extension of the expense data model #12 introduces
+**Phase 5 (needs #7 + #10):** #14 Card statement adjustment — the implementation plan found that bookings (#12/#13) carry no price of their own, so #14 owns the entire expense data model from scratch rather than extending one #12 introduces; a booking's real cost gets logged as a #14 expense instead (e.g. under an "Alojamiento" category)
 
-**Phase 6 (parallel, both need #12 + #14):** #15 Who owes whom (the settle-up math needs the "who's using it" field from #12 and the adjusted amounts from #14) · #16 Mark trip finished (only needs expenses to exist, not the settle-up math, so it can run alongside #15 instead of after it)
+**Phase 6 (parallel, both need #14):** #15 Who owes whom (the settle-up math reads exclusively from #14's expenses — amount, who paid, who's using it — never from booking records) · #16 Mark trip finished (only needs expenses to exist, not the settle-up math, so it can run alongside #15 instead of after it)
 
 **Phase 7 (sequential, needs #15 + #16):** #17 Final trip summary — needs both the closed-trip state and the balance numbers
 
