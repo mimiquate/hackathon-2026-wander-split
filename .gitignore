@@ -37,4 +37,5 @@ next-env.d.ts
 
 # local only
 graphify-out/cost.json
+graphify-out/cache/
 .claude/settings.json.graphify-bak
