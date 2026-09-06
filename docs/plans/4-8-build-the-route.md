@@ -1,8 +1,8 @@
-# wonderSplit Build the Route
+# 4 · #8 — wonderSplit Build the Route
 
 ## Context
 
-[Issue #8](https://github.com/mimiquate/wonder_split/issues/8) is where a trip actually becomes an itinerary: set the trip dates, pick which cities to visit and how many nights in each, and say how you get from one to the next. It's a sub-issue of [#3](https://github.com/mimiquate/wonder_split/issues/3) ("Trip setup and itinerary building") and, per the phase plan in [docs/roadmap.md](../roadmap.md), it's the first thing that can start once [#7](../plans/create-trip-invite.md) exists — nothing about cities/route exists without a trip and crew first.
+[Issue #8](https://github.com/mimiquate/wonder_split/issues/8) is where a trip actually becomes an itinerary: set the trip dates, pick which cities to visit and how many nights in each, and say how you get from one to the next. It's a sub-issue of [#3](https://github.com/mimiquate/wonder_split/issues/3) ("Trip setup and itinerary building") and, per the phase plan in [docs/roadmap.md](../roadmap.md), it's the first thing that can start once [#7](../plans/3-7-create-trip-invite.md) exists — nothing about cities/route exists without a trip and crew first.
 
 The design ("Armar el viaje" Claude Design project, `Armar el viaje.dc.html`) covers this with the **Ruta — panel** screen (see the design-mapping comment on the issue): search-to-add cities, a draggable stop list with a per-stop nights stepper (dates recompute automatically), a max-10-stops guard, and — sharing the same screen — a per-stop status chip (thinking/urgent/booked) that cycles on click. The design has no control at all for transportation method between stops; that's a real gap this plan has to invent a place for. This plan also reuses the `RouteMap` component the landing page's Phase 5 already built (see [ADR 0002](../adr/0002-route-map-react-component.md)), rendering it alongside the panel in an interactive "tap to add" mode — the same component #9 later reuses read-only for the full map view.
 
