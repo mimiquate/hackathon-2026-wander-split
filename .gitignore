@@ -34,3 +34,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local only
+graphify-out/cost.json
+.claude/settings.json.graphify-bak
