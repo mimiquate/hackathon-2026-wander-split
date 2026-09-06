@@ -1,3 +1,12 @@
+## Implementation plans
+
+- Writing a plan: use the `write-plan` skill.
+- Building a plan: use the `implement-plan` skill.
+- One plan (`docs/plans/*.md`) equals one PR, opened as a draft once Phase 1 is committed.
+- Each phase lands as exactly one commit, pushed, with the agent pausing for the user's go-ahead before starting the next phase.
+- Never rewrite or force-push a phase commit once the user has approved it — fix forward with a new commit instead.
+- The user, not the agent, flips the PR from draft to ready for review.
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.

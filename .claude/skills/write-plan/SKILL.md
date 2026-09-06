@@ -1,5 +1,5 @@
 ---
-name: implementation-plan
+name: write-plan
 description: Write a scoped implementation plan doc (docs/plans/<order>-<ticket>-<slug>.md) for a feature or GitHub issue, following this repo's docs/templates/implementation-plan.md pattern — the one already used for auth and the landing page. Use when starting design/spec work on a new epic or ticket before implementation begins.
 ---
 
