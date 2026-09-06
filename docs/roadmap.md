@@ -20,7 +20,7 @@ The "Armar el viaje" Claude Design project (https://claude.ai/design/p/2e3f39d2-
 
 **Phase 6 (parallel, both need #14):** #15 Who owes whom (the settle-up math reads exclusively from #14's expenses — amount, who paid, who's using it — never from booking records) · #16 Mark trip finished (only needs expenses to exist, not the settle-up math, so it can run alongside #15 instead of after it)
 
-~~Phase 7: #17 Final trip summary~~ — closed as not planned (2026-09-06): the design refresh added a real Balance tab but no separate Resumen screen; #17's three checklist items (total spend, category breakdown, final cost per person) folded permanently into #15's Balance tab instead. See [who-owes-whom.md](./plans/who-owes-whom.md).
+~~Phase 7: #17 Final trip summary~~ — closed as not planned (2026-09-06): the design refresh added a real Balance tab but no separate Resumen screen; #17's three checklist items (total spend, category breakdown, final cost per person) folded permanently into #15's Balance tab instead. See [who-owes-whom.md](./plans/8-15-who-owes-whom.md).
 
 If you've got people to spare, Phase 4 is the widest parallel batch (three independent tracks) — that's the best place to put extra hands once #7 → #8 → #10 are in.
 
