@@ -2,14 +2,17 @@
 
 ## Context
 
-[Issue #7](https://github.com/mimiquate/wonder_split/issues/7) is the first real product feature after [auth](./auth.md): once logged in, a user creates their first trip, and invites the rest of the group to join it. Nothing else in the product exists without a trip and a crew attached to it — every later ticket (route, cities, expenses, settle-up) hangs off the `Trip` and its members (see [docs/roadmap.md](../roadmap.md)). The design ("Armar el viaje" Claude Design project, `Armar el viaje.dc.html`) covers this with four screens/states read directly off the canvas: **Nuevo viaje — formulario** (trip name, dates, currency), **Invitar — panel** and **Invitar — el grupo** (invite link, add-by-email, crew grid with pending/joined badges), **Entrar desde la invitación** (the join screen: who invited you, name + color pick), and the **Compartir el viaje** dialog (reopening the invite panel from inside an existing trip).
+[Issue #7](https://github.com/mimiquate/wonder_split/issues/7) is the first real product feature after [auth](./auth.md): once logged in, a user creates their first trip, and invites the rest of the group to join it. Nothing else in the product exists without a trip and a crew attached to it — every later ticket (route, cities, expenses, settle-up) hangs off the `Trip` and its members (see [docs/roadmap.md](../roadmap.md)). The design ("Armar el viaje" Claude Design project, `Armar el viaje.dc.html`) covers this with five screens/states read directly off the canvas: **Nuevo viaje — formulario** (trip name and start date only — no end date, see Scope), **Invitar — panel** and **Invitar — el grupo** (invite link, add-by-email, crew grid with pending/joined badges), **Entrar desde la invitación** (the join screen: who invited you, name + color pick), the **Compartir el viaje** dialog (reopening the invite panel from inside an existing trip), and the **"Datos del viaje"** dialog (renaming the trip and editing its start date after creation, opened from the in-trip header's editable title/meta row).
 
 Auth's plan explicitly deferred the design's invite/join screen here, since there was no trip/membership model yet to attach it to (see [auth.md](./auth.md) non-goals) — this ticket is where that gets built.
 
+This plan also folds in a real answer to a gap the original design review flagged: the design used to show both a start and end date at trip creation, with no way to reconcile a stored end date against [#8](./build-the-route.md)'s per-stop nights. Grilled with Florencia (2026-09-05/06) and resolved: no end date is collected at creation at all — it's fully derived (start date + Σ stop nights) once #8 gives the trip stops. The start date itself becomes editable after creation (previously assumed immutable), gated on the trip having zero bookings anywhere.
+
 ## Scope
 
-- Create a trip: name, date range, currency (a fixed `USD` / `EUR` list, defaulting to `USD` — trimmed down from the design's `Select`, which also shows `ARS`; see Non-goals) picked at creation time, since #14/#15's per-person amounts need a trip currency to exist from the start.
+- Create a trip: name, **start date only** (no end date field — the design's creation form used to show a "Vuelven" field too, but that's cut; end date is fully derived from the start date plus the sum of every stop's nights once [#8](./build-the-route.md) gives the trip stops, and stays undefined/"TBD" for a trip with zero stops), currency (a fixed `USD` / `EUR` list, defaulting to `USD` — trimmed down from the design's `Select`, which also shows `ARS`; see Non-goals) picked at creation time, since #14/#15's per-person amounts need a trip currency to exist from the start.
 - Roles: the creator is stored as `admin`, everyone who joins after is `participant`. No admin-only UI gating yet (see Non-goals) — just the data.
+- Editing a trip's name and start date after creation, via the "Datos del viaje" dialog (opened from the in-trip header's editable title/meta row — the design reuses the same dialog shape for creation and later editing). Any trip member can edit (no admin-only gating, consistent with the rest of the app), **as long as the trip has zero bookings ([#12](https://github.com/mimiquate/wonder_split/issues/12)/[#13](https://github.com/mimiquate/wonder_split/issues/13)) anywhere on any stop** — once a single booking exists anywhere in the trip, the start date locks permanently (renaming stays editable always; only the date locks). Editing the start date shifts every stop's already-computed dates by the delta between the old and new value. No confirmation dialog, matching the app's universal no-confirm pattern — the booking-gate itself removes the risk a confirm step would otherwise guard against.
 - Generate a shareable invite link for a trip (a single copyable URL, `wsplit.app/i/<token>`-shaped, works pasted into WhatsApp or anywhere else) — the design's own copy says "cualquiera con el link puede entrar," so it's intentionally not restricted to a specific invitee.
 - Invite panel: copy the link, add someone by email to **reserve a pending crew slot** (not send anything — see Non-goals), and a crew grid showing joined members (name, avatar color) alongside pending reservations (pending badge, shown by their email since there's no name yet).
 - Join flow: opening an invite link takes a logged-in user to a screen naming who invited them and which trip, showing who's already in, letting them type how they want to be called and pick their color for this trip, then join as a `participant`. If a joiner's account email matches a pending reservation, that reservation resolves into their joined row instead of creating a second one.
@@ -24,7 +27,12 @@ Auth's plan explicitly deferred the design's invite/join screen here, since ther
 - **A guest/no-account join path.** The join screen has no email/password fields, but that's because it assumes the visitor is already authenticated — the issue text ("once logged in, create...or join") and the existing Auth.js foundation both point the same way. A logged-out visitor goes through the existing login/signup flow first, then lands on the join screen. No new lightweight/accountless identity system.
 - **"Ver como invitado" preview button** in the Compartir dialog (previewing the join screen without joining). Not in the issue's checklist; cut as a demo-only affordance.
 - **Admin-only permission enforcement.** The role is stored and shown nowhere special yet — there's no admin-gated action to protect, since route/city/expense management (where that distinction would matter) doesn't exist yet. Revisit once one of those tickets needs it.
-- **Editing a trip after creation** (rename, change dates, change currency), **removing a member**, or **deleting a trip.** Not in the design, not in this ticket.
+- **Changing a trip's currency after creation.** The "Datos del viaje" edit dialog only has name and start-date fields, no currency — currency stays fixed at whatever was picked at creation.
+- **Removing a member.** The design's new "Grupo" screen (the in-trip Ruta/Grupo/Gastos/Balance tab bar) has a remove-member action, but it's bigger scope than this ticket owns (blocking removal if that person has a booking or expense, recomputing the balance view) — tracked separately as [issue #38](https://github.com/mimiquate/wonder_split/issues/38).
+- **Deleting a trip.** Not in the design, not in this ticket.
+- **A more granular start-date lock.** Today's rule is a blunt trip-wide gate — any booking anywhere on the trip locks editing, not just a booking on a stop the date shift would actually affect. A version that only locks once a booking exists on an *affected* stop is a noted future refinement, not built now.
+- **A visual "locked" state for the date field.** The design's "Datos del viaje" dialog doesn't depict what the start-date input looks like once bookings exist and editing is blocked — this ticket implements the gate regardless (disable the field, show explanatory copy), just without a pixel-perfect spec to match.
+- **An optional/non-binding "target end date."** Floated as a future-optional trip setting during grilling, not built now — a trip has no end-date concept at all until #8 gives it stops.
 - **The home dashboard listing a user's trips** (#22) — separate ticket, being built in parallel. This plan needs *some* place for "create your first trip" to live before that exists (see Phase 2's "Things to consider").
 - **Per-city/per-route data** (#8 onward) — this ticket stops at "a trip exists with a crew," nothing about the itinerary inside it. The join screen's background map and "route signature" text both fall back to just the trip name until #8 gives a trip any stops.
 
@@ -37,6 +45,7 @@ The data model — trips, memberships, invite reservations — has to exist befo
 3. **Phase 3 — Invite panel & crew grid:** the copyable link, add-by-email (reserves a pending slot, sends nothing), and the joined/pending crew grid.
 4. **Phase 4 — Join via invite link:** the `/i/[token]` flow, including routing a logged-out visitor through auth first, then the "Entrar desde la invitación" screen, with pending-reservation matching by email.
 5. **Phase 5 — Compartir dialog:** the in-trip header button that reopens Phase 3's invite UI as a dialog over the trip.
+6. **Phase 6 — Edit trip name & start date:** the "Datos del viaje" dialog, reused post-creation, gated on the trip having zero bookings before the start date can change.
 
 ## Constraints & Things to Consider
 
@@ -73,12 +82,13 @@ Prisma models for `Trip` (name, start/end date, currency), `TripMembership` (use
 
 **What this phase delivers**
 
-The "Nuevo viaje" form: trip name, start/end date, and a currency picker (USD/EUR, defaulting to USD), wired to Phase 1. Submitting creates the trip and lands the creator on that trip's invite panel (Phase 3).
+The "Nuevo viaje" form: trip name, start date, and a currency picker (USD/EUR, defaulting to USD), wired to Phase 1. No end-date field — the trip has no stored end date at all until #8 gives it stops. Submitting creates the trip and lands the creator on that trip's invite panel (Phase 3).
 
 **Acceptance criteria**
 
-- A logged-in user can create a trip with a name, date range, and currency; the currency shown later for amounts (once #14/#15 exist) is whatever was picked here.
-- Missing name or an end date before the start date is rejected with an inline error, not a server error page.
+- A logged-in user can create a trip with a name, a start date, and currency; the currency shown later for amounts (once #14/#15 exist) is whatever was picked here.
+- A missing name or start date is rejected with an inline error, not a server error page.
+- The created trip has no end date stored anywhere — it's computed on demand once stops exist, not persisted.
 - After creating, the user lands directly on the new trip's invite panel — not a dead end.
 
 **Things to consider**
@@ -87,7 +97,7 @@ The "Nuevo viaje" form: trip name, start/end date, and a currency picker (USD/EU
 
 **Tests**
 
-- Vitest + RTL: submitting valid values calls the create-trip function with the right payload; an end date before the start date shows the inline error and doesn't submit.
+- Vitest + RTL: submitting valid values calls the create-trip function with the right payload; a missing name or start date shows the inline error and doesn't submit.
 
 ### Phase 3 — Invite panel & crew grid
 
@@ -142,9 +152,31 @@ The "Compartir" button in a trip's header, opening a dialog with the same invite
 
 - Vitest + RTL: opening the dialog renders the same link and crew grid as the invite panel; adding an email from the dialog calls the same function Phase 3 uses.
 
+### Phase 6 — Edit trip name & start date
+
+**What this phase delivers**
+
+The "Datos del viaje" dialog reused post-creation: rename the trip and change its start date, opened from the in-trip header's editable title/meta row. Renaming is always allowed; changing the start date is blocked once the trip has any booking anywhere.
+
+**Acceptance criteria**
+
+- Any trip member can open "Datos del viaje" and change the trip name at any time; saving updates it everywhere it's shown, no confirmation dialog.
+- If the trip has zero bookings anywhere on any stop, the start date is editable the same way; saving shifts every stop's computed dates by the delta between the old and new start date.
+- If the trip has at least one booking anywhere, the start-date field is disabled with explanatory copy — the name field stays editable regardless.
+- Editing the start date never touches per-stop nights — only the trip's anchor date moves, which cascades into every stop's already-derived date range.
+
+**Things to consider**
+
+- "Has a booking anywhere" means anywhere in the trip, not just on a stop the shift would actually affect — see Non-goals for the noted future refinement.
+
+**Tests**
+
+- Vitest + RTL: renaming always succeeds; the start-date field is enabled with zero bookings and disabled (with copy) once a booking exists.
+- Integration test: changing the start date shifts every stop's computed date range by the right delta; attempting to change it server-side with an existing booking is rejected even if the UI were bypassed.
+
 ## How to QA
 
-- Log in, create a trip with a name, a date range, and a currency, and confirm you land on its invite panel as the admin.
+- Log in, create a trip with a name, a start date, and a currency, and confirm you land on its invite panel as the admin — no end-date field should exist anywhere on this form.
 - Reserve a teammate's email from the invite panel and confirm a pending row (labeled by that email) shows up immediately, with nothing actually sent.
 - Copy the invite link and open it in a logged-out browser/incognito window — confirm you're routed through signup/login and land back on the join screen for that trip afterward.
 - Sign up/log in using the same email you reserved earlier, pick a name and color, and confirm: you land in the trip as a participant, and the earlier pending row on the admin's crew grid flips to your joined row instead of showing twice.
@@ -152,6 +184,8 @@ The "Compartir" button in a trip's header, opening a dialog with the same invite
 - Re-open the same invite link as someone already in the trip and confirm it drops you straight into the trip, no join screen.
 - From inside the trip, click "Compartir" in the header and confirm it shows the same link/crew grid as the original invite panel.
 - Try an invite link with a garbage token and confirm you get an error state, not a crash.
+- Open "Datos del viaje" on a trip with no bookings yet, rename it and change the start date, and confirm every stop's shown dates shift by the same delta.
+- Add a booking to any stop, then reopen "Datos del viaje" and confirm the start-date field is now disabled (with explanatory copy) while the name field still saves fine.
 
 ## Rollout & Cleanup
 

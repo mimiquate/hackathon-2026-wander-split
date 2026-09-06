@@ -6,11 +6,14 @@
 
 The design ("Armar el viaje" Claude Design project, `Armar el viaje.dc.html`) covers this with the **Ruta — panel** screen (see the design-mapping comment on the issue): search-to-add cities, a draggable stop list with a per-stop nights stepper (dates recompute automatically), a max-10-stops guard, and — sharing the same screen — a per-stop status chip (thinking/urgent/booked) that cycles on click. The design has no control at all for transportation method between stops; that's a real gap this plan has to invent a place for. This plan also reuses the `RouteMap` component the landing page's Phase 5 already built (see [ADR 0002](../adr/0002-route-map-react-component.md)), rendering it alongside the panel in an interactive "tap to add" mode — the same component #9 later reuses read-only for the full map view.
 
+This is also the first screen in the flow where the design's persistent in-trip chrome appears — the trip name/dates header plus the Ruta/Grupo/Gastos/Balance tab bar (`showTripBar`/`tripTabs` in the design's state) that #9, #14, #15, and #16's plans all assume exists but none of them build. Since it first turns on at this screen (the design gates it off during #7's "Nuevo viaje"/"Invitar" onboarding steps and turns it on starting here), this ticket owns building that shared shell; later tickets render their tab's content inside it rather than rebuilding the chrome.
+
 ## Scope
 
 - The onboarding hand-off from #7's invite panel into the route builder: a "Continuar" action that advances the existing new-trip/invite/route stepper to its third step, since #7 stopped at "a trip exists with a crew."
-- Search-to-add cities: a debounced worldwide city search (see [ADR 0006](../adr/0006-mapbox-geocoding-city-search.md)) with results showing city + country, added to the trip on click.
-- The stop list: each stop shows its city, its computed date range and night count, a nights +/− stepper, and a remove action. Dates cascade automatically off the trip's existing start date (set at creation, #7) plus each stop's nights — there's no separate "trip dates" control in this screen, since the design doesn't have one and #7 already owns the start date.
+- The persistent in-trip header and Ruta/Grupo/Gastos/Balance tab bar (the shared shell #9/#14/#15/#16 all render their own tab inside): the trip name/dates row (reusing #7's "Datos del viaje" edit dialog) and the pill tab strip. This screen renders as the "Ruta" tab's content; other tickets are responsible only for their own tab's content, not the chrome around it.
+- Search-to-add cities: a debounced worldwide city search (see [ADR 0006](../adr/0006-mapbox-geocoding-city-search.md)) with results showing city + country, added to the trip on click. **A city already in the route can be added again as a separate, non-consecutive stop** (e.g. a return-flight hub city) — stop identity is the stop itself, never the city name, so duplicates are allowed and never merged or deduped anywhere (this screen, #9's map, #10's per-stop view, or any future summary).
+- The stop list: each stop shows its city, its computed date range and night count, a nights +/− stepper, and a remove action. Dates cascade automatically off the trip's start date (set at creation and, since #7, editable afterward — see Constraints) plus each stop's nights — there's no separate "trip dates" control in this screen, since the design doesn't have one and #7 owns the start date.
 - A max of 10 stops per trip, with a warning banner once hit and the add-city search disabled past that point.
 - Reordering stops: native drag-and-drop for pointer devices (matching the design), plus up/down move buttons as a touch-friendly fallback, since the design's own drag interaction doesn't work on mobile at all.
 - A per-stop status chip (thinking/urgent/booked) that cycles through the three states on click, defaulting a newly added stop to "thinking." It's part of this screen in the design, so it ships here — later tickets (like #11) build further status-driven views on top of the same field.
@@ -20,11 +23,11 @@ The design ("Armar el viaje" Claude Design project, `Armar el viaje.dc.html`) co
 ## Non-goals
 
 - **The "Ver el viaje" destination screen itself.** That's #9's map view. This ticket's button is a stub (disabled, or simply not shown) until #9 lands — not a placeholder screen built here.
-- **A persistent nav entry back into route-building.** The design's authenticated nav (Ruta/Gastos/Saldar/Vouchers) is already out of scope per auth's plan. For now the only way back into the route screen is the hand-off from the invite panel (see Scope) or, once #9 ships, its "Editar ruta" button. A dedicated always-available "edit route" entry point is a follow-up once #22's dashboard exists.
+- **App-level nav across trips** (a header/dropdown for switching trips, profile/account settings). That's a separate, still-undesigned piece of work — the design's old authenticated top-nav (Viajes/Gastos/Vouchers/Perfil) turned out to be dead code, unrendered anywhere once the in-trip tab bar exists. This ticket only builds the *in-trip* Ruta/Grupo/Gastos/Balance tab bar (see Scope), which is itself the always-available way back into route editing once inside a trip — no separate "edit route" entry point needed beyond clicking its "Ruta" tab.
 - **Per-leg transportation logic beyond storing the choice.** No duration/cost estimation, no booking integration — just picking flight/train/rental car per leg and showing it.
 - **A default/suggested transportation mode** (e.g. auto-picking "flight" over a long distance). Every leg starts unset and the user picks explicitly.
 - **Geocoding coverage guarantees.** Mapbox's result set is what it is; an extremely obscure destination not in their index is out of scope to work around.
-- **Editing the trip's start date or currency from this screen.** Those stay owned by #7 (already a non-goal there too) — this screen only consumes the start date, it doesn't let you change it.
+- **Editing the trip's name, start date, or currency from this screen.** Those stay owned by #7's "Datos del viaje" dialog (reused here as part of the shared header, see Scope) — this screen's stop dates just consume the start date and recompute automatically when it changes, they don't provide their own way to change it.
 - **A literal kanban/status-board view.** The chip here is just the same click-to-cycle control the design shows inline in the stop row — the dedicated board view is #11.
 
 ## Implementation Strategy
@@ -32,10 +35,11 @@ The design ("Armar el viaje" Claude Design project, `Armar el viaje.dc.html`) co
 The city-search + stop data has to exist before any of the screen works, so that's Phase 1, same shape as how auth and #7 both started with their data layer. From there the panel gets built up in the order a user actually interacts with it: search and add cities first (the core of the ticket), then the ability to fix a mistake (reorder, remove), then the two per-stop details the design also carries on this screen (status, then the invented transportation field), since neither blocks the others.
 
 1. **Phase 1 — Stop data model & city search:** Prisma schema for a trip's ordered stops (city, country, coordinates, nights, position, status, transport-from-previous), the Mapbox-backed search endpoint, and the server-side add/remove/reorder/nights functions. No UI yet.
-2. **Phase 2 — Route panel: search, add, and the stop list:** the "Ruta — panel" screen wired to Phase 1 — search results, adding a stop, the nights stepper, remove, the max-10 guard, and the aggregate footer stats. Includes the hand-off from #7's invite panel into this screen.
-3. **Phase 3 — Reorder:** drag-and-drop for pointer devices plus up/down buttons for touch, both writing the same reordered stop list.
-4. **Phase 4 — Per-stop status:** the click-to-cycle thinking/urgent/booked chip on each stop row.
-5. **Phase 5 — Transportation between stops:** the flight/train/rental-car connector control between consecutive stop rows.
+2. **Phase 2 — Persistent trip header & tab bar:** the shared in-trip shell (trip name/dates row + Ruta/Grupo/Gastos/Balance tab bar) every later trip-level ticket renders inside.
+3. **Phase 3 — Route panel: search, add, and the stop list:** the "Ruta — panel" screen wired to Phase 1, rendered as the "Ruta" tab's content inside Phase 2's shell — search results, adding a stop (including a duplicate city as its own separate stop), the nights stepper, remove, the max-10 guard, and the aggregate footer stats. Includes the hand-off from #7's invite panel into this screen.
+4. **Phase 4 — Reorder:** drag-and-drop for pointer devices plus up/down buttons for touch, both writing the same reordered stop list.
+5. **Phase 5 — Per-stop status:** the click-to-cycle thinking/urgent/booked chip on each stop row.
+6. **Phase 6 — Transportation between stops:** the flight/train/rental-car connector control between consecutive stop rows.
 
 ## Constraints & Things to Consider
 
@@ -43,7 +47,8 @@ The city-search + stop data has to exist before any of the screen works, so that
 - Copy is Rioplatense Spanish (vos), taken verbatim from the design where it exists; anything invented (the transportation control's own copy) matches that voice.
 - The Mapbox API key is a server-side secret — the app's server proxies the search, the client never calls Mapbox directly with a key embedded in the bundle.
 - Stop order is a first-class, persisted field (not inferred from insertion order) so drag/up-down reordering, nights recompute, and the eventual map/city screens (#9/#10) all read the same sequence.
-- A stop's computed date range is always derived (trip start date + cumulative prior nights), never stored as its own start/end fields — recomputing avoids a stale date sitting next to an edited earlier stop's nights.
+- A stop's computed date range is always derived (trip start date + cumulative prior nights), never stored as its own start/end fields — recomputing avoids a stale date sitting next to an edited earlier stop's nights, and means #7's start-date edit (see its Phase 6) needs no special handling here beyond reading whatever the trip's current start date is.
+- A stop's identity is its own row (an opaque id), never the city name — the city search's "already in the route" check (if any) is purely informational, never a hard block, since the same city can legitimately appear twice as separate, non-consecutive stops.
 
 ## Phases
 
@@ -69,7 +74,24 @@ Prisma models for a trip's stops (city, country, lat/lon, nights, position, stat
 
 - Integration tests against the data functions directly: adding sets position/defaults correctly; removing reindexes remaining positions; reordering updates every affected stop; an 11th add on a full trip is rejected; the search function returns results for a known city query (mocked Mapbox response).
 
-### Phase 2 — Route panel: search, add, and the stop list
+### Phase 2 — Persistent trip header & tab bar
+
+**What this phase delivers**
+
+The shared in-trip shell: the trip name/dates row (reusing #7's "Datos del viaje" edit dialog) and the Ruta/Grupo/Gastos/Balance pill tab bar. Renders around whatever the active tab's content is — starting with Phase 3's route panel, and later #9/#14/#15/#16's own tab content.
+
+**Acceptance criteria**
+
+- The header and tab bar render for any trip that's past #7's onboarding (i.e. has left the "Nuevo viaje"/"Invitar" steps), on every trip-level screen.
+- Clicking a tab switches the active content without a full page reload; the "Ruta" tab is selected by default when arriving via #7's "Continuar" hand-off.
+- The trip name/dates row opens #7's "Datos del viaje" dialog on click, exactly as #7 specifies.
+- Tabs whose content doesn't exist yet in this codebase (Grupo/Gastos/Balance, until their own tickets land) can render a stub rather than blocking this phase — the chrome and navigation are what this phase owns.
+
+**Tests**
+
+- Vitest + RTL: the tab bar renders all four tabs; clicking one switches the active tab without navigating away; the header click opens the dates dialog.
+
+### Phase 3 — Route panel: search, add, and the stop list
 
 **What this phase delivers**
 
@@ -78,7 +100,7 @@ The "Ruta — panel" screen: the debounced city search with its results dropdown
 **Acceptance criteria**
 
 - Typing in the search box shows matching cities (name + country) after a debounce; clicking one adds it as a new stop with 1 night and status "thinking," and clears the search.
-- Adding a city already in the trip is a no-op with a message, not a duplicate stop.
+- Adding a city already in the trip creates a second, independent stop (its own id, own nights, own position) — not a no-op, and never merged with the existing one.
 - Each stop shows its computed date range and night count, both of which update immediately (no reload) when nights change anywhere earlier in the list.
 - Hitting 10 stops shows the warning banner and disables adding further cities; removing a stop re-enables it.
 - The footer shows the right total stop count, total nights, and total distance for the current stop list.
@@ -90,10 +112,10 @@ The "Ruta — panel" screen: the debounced city search with its results dropdown
 
 **Tests**
 
-- Vitest + RTL: search results render from a mocked search response; clicking a result adds the stop and clears the query; adding a duplicate city is a no-op; nights stepper updates the shown date range for every later stop; the 10th add shows the warning and blocks an 11th until one's removed.
+- Vitest + RTL: search results render from a mocked search response; clicking a result adds the stop and clears the query; adding a city already in the trip creates a second independent stop rather than being blocked; nights stepper updates the shown date range for every later stop; the 10th add shows the warning and blocks an 11th until one's removed.
 - Integration test: the invite-panel "Continuar" action routes into this screen for the right trip.
 
-### Phase 3 — Reorder
+### Phase 4 — Reorder
 
 **What this phase delivers**
 
@@ -110,7 +132,7 @@ Drag-and-drop reordering of stops for pointer devices, matching the design, plus
 - Playwright test: dragging a stop to a new position updates the rendered order and the shown dates for stops after it.
 - Vitest + RTL: the up/down buttons move a stop, are disabled at the respective edge, and call the same reorder function drag uses.
 
-### Phase 4 — Per-stop status
+### Phase 5 — Per-stop status
 
 **What this phase delivers**
 
@@ -126,7 +148,7 @@ The click-to-cycle status chip (thinking → urgent → booked → thinking) on 
 
 - Vitest + RTL: clicking the chip cycles through all three states in order and stops the click from bubbling to the row.
 
-### Phase 5 — Transportation between stops
+### Phase 6 — Transportation between stops
 
 **What this phase delivers**
 
@@ -150,10 +172,11 @@ A small connector control between each consecutive pair of stops in the list, le
 
 ## How to QA
 
-- From a fresh trip (post-invite), click "Continuar" and confirm you land on the route builder.
+- From a fresh trip (post-invite), click "Continuar" and confirm you land on the route builder, with the Ruta/Grupo/Gastos/Balance tab bar visible and "Ruta" selected.
 - Search for a city (try one from a different continent than the design's Iberian cities) and add it; confirm it appears in the stop list with 1 night and "Lo estamos pensando."
+- Add the same city again and confirm it appears as a second, separate stop rather than being blocked or merged.
 - Bump its nights up and down and confirm the shown date range updates immediately.
-- Add cities up to 10 and confirm the 11th is blocked with the warning banner; remove one and confirm you can add again.
+- Add cities up to 10 (counting each duplicate as its own stop) and confirm the 11th is blocked with the warning banner; remove one and confirm you can add again.
 - Drag a stop to reorder it, then use the up/down buttons on another stop, and confirm both update the list and every affected stop's dates.
 - Click a stop's status chip repeatedly and confirm it cycles thinking → urgent → booked → thinking.
 - Set a transportation mode on a leg, reorder the stops around it, and confirm the leg's transport choice doesn't silently attach to the wrong pair.
