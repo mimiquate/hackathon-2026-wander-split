@@ -1,12 +1,12 @@
-# wonderSplit Home Dashboard
+# 4 · #22 — wonderSplit Home Dashboard
 
 ## Context
 
-[Issue #22](https://github.com/mimiquate/wonder_split/issues/22) covers the "Tus viajes" home screen: after logging in, a user lands on a page listing every trip they're part of. It's not covered by any existing ticket — the design has a screen for it with no matching issue, so #22 was created for it (see [docs/roadmap.md](../roadmap.md)). It depends only on [#7](https://github.com/mimiquate/wonder_split/issues/7) (create-trip-invite, see [docs/plans/create-trip-invite.md](./create-trip-invite.md)) for a `Trip`/`TripMembership` to list in the first place, and runs in parallel with [#8](https://github.com/mimiquate/wonder_split/issues/8) (build the route) — this plan doesn't wait on #8, it just falls back gracefully wherever a trip doesn't have route/stop data yet, same pattern #7's plan already used for the join screen.
+[Issue #22](https://github.com/mimiquate/wonder_split/issues/22) covers the "Tus viajes" home screen: after logging in, a user lands on a page listing every trip they're part of. It's not covered by any existing ticket — the design has a screen for it with no matching issue, so #22 was created for it (see [docs/roadmap.md](../roadmap.md)). It depends only on [#7](https://github.com/mimiquate/wonder_split/issues/7) (create-trip-invite, see [docs/plans/3-7-create-trip-invite.md](./3-7-create-trip-invite.md)) for a `Trip`/`TripMembership` to list in the first place, and runs in parallel with [#8](https://github.com/mimiquate/wonder_split/issues/8) (build the route) — this plan doesn't wait on #8, it just falls back gracefully wherever a trip doesn't have route/stop data yet, same pattern #7's plan already used for the join screen.
 
 The design ("Armar el viaje" Claude Design project, `Armar el viaje.dc.html`, screen `Home — tus viajes`) shows a card grid: an always-present "Nuevo viaje" entry card, followed by one card per trip with a route summary, dates, a photo carousel, crew avatars, and a status chip. It also shows the shared authenticated-app header nav (Viajes / Gastos / Vouchers / Perfil) with "Viajes" as the active item — this ticket is what turns "Viajes" into the app's first real destination.
 
-This screen also becomes the real post-login landing route, replacing the minimal placeholder page auth's Phase 6 built just to prove protected routing worked (see [auth.md](./auth.md) Phase 6).
+This screen also becomes the real post-login landing route, replacing the minimal placeholder page auth's Phase 6 built just to prove protected routing worked (see [2-2-auth.md](./2-2-auth.md) Phase 6).
 
 ## Scope
 
