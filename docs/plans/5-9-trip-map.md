@@ -1,8 +1,8 @@
-# wonderSplit Trip on the Map
+# 5 · #9 — wonderSplit Trip on the Map
 
 ## Context
 
-[Issue #9](https://github.com/mimiquate/wonder_split/issues/9) ("The trip on the map") wants a way to see the whole route on an interactive map: destinations marked, connected by arrows/lines, with a transportation icon on each connection. It's a sub-issue of the now-closed [#3](https://github.com/mimiquate/wonder_split/issues/3), and per [docs/roadmap.md](../roadmap.md) it's one of the two things that can start once [#8](./build-the-route.md) exists (the other being #10, which runs in parallel and doesn't block this).
+[Issue #9](https://github.com/mimiquate/wonder_split/issues/9) ("The trip on the map") wants a way to see the whole route on an interactive map: destinations marked, connected by arrows/lines, with a transportation icon on each connection. It's a sub-issue of the now-closed [#3](https://github.com/mimiquate/wonder_split/issues/3), and per [docs/roadmap.md](../roadmap.md) it's one of the two things that can start once [#8](./4-8-build-the-route.md) exists (the other being #10, which runs in parallel and doesn't block this).
 
 Most of the heavy lifting here is already done. #8 built the `RouteMap` component (see [ADR 0002](../adr/0002-route-map-react-component.md)) and already renders it, with numbered markers and a dashed connecting line, on its own "Ruta — mapa" screen while you're editing the route. #8's plan also left a stub: the panel's "Ver el viaje" button exists but does nothing, "wired to whatever #9 ends up being," because this screen didn't exist yet. So this ticket is really two things: give the trip a dedicated, read-only "view the whole trip" screen (which un-stubs that button and satisfies the first two checklist items for free, since they're already true of the shared map component), and teach that shared map to draw a transportation icon on each connector, now that #8's Phase 5 gives every leg a stored transport mode.
 

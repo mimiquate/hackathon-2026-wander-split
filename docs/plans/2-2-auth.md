@@ -1,4 +1,4 @@
-# wonderSplit Auth
+# 2 · #2 — wonderSplit Auth
 
 ## Context
 
@@ -6,7 +6,7 @@
 
 Unlike the landing page, auth runs the product's **dark** theme by default (`data-theme="dark"`) — light is marketing-only.
 
-This plan assumes the Next.js app scaffold and Ruta Terracota tokens/components from [issue #1](https://github.com/mimiquate/wonder_split/issues/1)'s landing page (see `docs/plans/landing-page.md` Phase 1) already exist. If auth ships first, do that scaffold work first, using the same approach.
+This plan assumes the Next.js app scaffold and Ruta Terracota tokens/components from [issue #1](https://github.com/mimiquate/wonder_split/issues/1)'s landing page (see `docs/plans/1-1-landing-page.md` Phase 1) already exist. If auth ships first, do that scaffold work first, using the same approach.
 
 ## Scope
 
