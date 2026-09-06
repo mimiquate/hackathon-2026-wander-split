@@ -1,10 +1,10 @@
-# wonderSplit City Notes
+# 6 · #23 — wonderSplit City Notes
 
 ## Context
 
 [Issue #23](https://github.com/mimiquate/wonder_split/issues/23) is a free-text notes board per city — heads-up, reminders, warnings the group leaves for each other ("the Airbnb has four unlit steps, bring a flashlight"). It didn't map to any original issue checklist; it got added fresh once the design review turned up a "Notas" tab with no ticket behind it (see [docs/roadmap.md](../roadmap.md)).
 
-[Zoom into each city](./zoom-into-city.md) (#10, already built) shipped the city-detail screen's 4-tab strip — Plan / Reservas / Gastos / Notas — but left Notas inert on purpose, a placeholder tab with a `0`/hidden count and no content behind it. This plan is what makes that tab real. It's one of three tracks running in parallel in Phase 4 (alongside #11 status board and #12/#13 booking-attribution + vouchers, each getting its own plan) — all three only need #10 to exist, and don't depend on each other.
+[Zoom into each city](./5-10-zoom-into-city.md) (#10, already built) shipped the city-detail screen's 4-tab strip — Plan / Reservas / Gastos / Notas — but left Notas inert on purpose, a placeholder tab with a `0`/hidden count and no content behind it. This plan is what makes that tab real. It's one of three tracks running in parallel in Phase 4 (alongside #11 status board and #12/#13 booking-attribution + vouchers, each getting its own plan) — all three only need #10 to exist, and don't depend on each other.
 
 The design ("Armar el viaje" Claude Design project, `Armar el viaje.dc.html`) covers this with the **Ciudad — detalle → Notas** tab: a card titled "Notas del grupo," a flat list of notes (avatar, note text, name + relative timestamp like "hace 2 días" underneath), and a single-line input with a "Mandar" button at the bottom to add a new one. The mock data always attributes new notes to a hardcoded "Juan" — standing in for "whoever's logged in," not a real author picker.
 
@@ -36,7 +36,7 @@ Small, self-contained ticket — one phase for the data model, one for wiring #1
 - Reuse the Ruta Terracota tokens/components already ported everywhere else (`var(--token)`, terracota focus ring, ≥44px tap targets, `prefers-reduced-motion` handling).
 - Copy is Rioplatense Spanish (vos), taken from the design where it exists ("Notas del grupo," "Escribí algo para el grupo," "Mandar").
 - A note belongs to a stop (a city instance on this specific trip), not a bare city name — same modeling call #10 made for marked places, and for the same reason: two visits to the same city, if that's ever possible, shouldn't share notes.
-- A note's author is the poster's `TripMembership` (per-trip display name + color, per [create-trip-invite.md](./create-trip-invite.md)'s model), not their account-level profile — matches how every other per-trip identity in the app already works.
+- A note's author is the poster's `TripMembership` (per-trip display name + color, per [create-trip-invite.md](./3-7-create-trip-invite.md)'s model), not their account-level profile — matches how every other per-trip identity in the app already works.
 - The relative timestamp ("hace 2 días," "recién") is computed at render time from a real stored `createdAt`, not a literal string — the design's mock hardcodes the display strings, but a real note needs a real timestamp to compute it from.
 
 ## Phases
