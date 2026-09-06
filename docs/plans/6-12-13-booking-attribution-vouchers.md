@@ -1,4 +1,4 @@
-# wonderSplit Booking Attribution & Vouchers
+# 6 · #12/#13 — wonderSplit Booking Attribution & Vouchers
 
 ## Context
 
@@ -6,7 +6,7 @@
 
 The design ("Armar el viaje" Claude Design project, `Armar el viaje.dc.html`) covers both with the same **"Sumar reserva"** dialog, reachable from the city-detail screen's **Reservas** tab (design-mapping comments already left on both issues). That dialog has "Quién reservó" and "Quién pagó" selects, and a PDF upload (drag or browse); the voucher detail view shows the uploaded file as a chip next to who it's "a nombre de." Two real gaps between the design and the checklists came out of that mapping pass: there's no "who's using it" subset picker anywhere yet (the voucher detail's "X of Y crew staying" list is read-only mock data), and the upload only accepts PDF where the checklist also wants images, with no distinct mobile/offline view at all (desktop panel only).
 
-This plan builds on top of [docs/plans/zoom-into-city.md](./zoom-into-city.md) (#10), which already ships the city-detail screen's 4-tab strip with Reservas present but inert — a placeholder that does nothing. This is the plan that makes Reservas real. It also depends on #7's trip/crew model for who can be picked as "reservó," "pagó," or "usa."
+This plan builds on top of [docs/plans/5-10-zoom-into-city.md](./5-10-zoom-into-city.md) (#10), which already ships the city-detail screen's 4-tab strip with Reservas present but inert — a placeholder that does nothing. This is the plan that makes Reservas real. It also depends on #7's trip/crew model for who can be picked as "reservó," "pagó," or "usa."
 
 A comment on #12 already scopes this down for us: this ticket owns the booking *data* — whose name, who paid, who's using it — not the expense-split math. That's #15's job, which will consume "who's using it" as an input once it exists.
 
