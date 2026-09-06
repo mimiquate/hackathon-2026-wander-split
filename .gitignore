@@ -36,6 +36,5 @@ yarn-error.log*
 next-env.d.ts
 
 # local only
-graphify-out/cost.json
-graphify-out/cache/
+graphify-out/
 .claude/settings.json.graphify-bak
