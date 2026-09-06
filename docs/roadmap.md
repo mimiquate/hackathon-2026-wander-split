@@ -8,16 +8,22 @@ The "Armar el viaje" Claude Design project (https://claude.ai/design/p/2e3f39d2-
 
 **Phase 1 (sequential foundation):** #7 Create the trip and invite the group — nothing else exists without a trip + crew.
 
-**Phase 2 (parallel, both need only #7):** #22 Home dashboard · #8 Build the route
+**Phase 2 (parallel, both need only #7):** #22 Home dashboard · #8 Build the route (also builds the persistent in-trip header/tab bar — Ruta/Grupo/Gastos/Balance — that #9/#14/#15/#16 all render their own tab inside)
 
 **Phase 3 (parallel, both need #8):** #9 Trip on the map · #10 Zoom into each city
 
-**Phase 4 (parallel, all need #10):** #23 Notes per city · (#12 Who shows their face vs. who puts the card + #13 The voucher folder — build these two together, they share one dialog) · #11 Status board (can actually start as soon as #8 exists, for stop states, and just gets extended once #12/#13 land, for voucher states)
+**Phase 4 (parallel, all need #10):** #23 Notes per city · (#12 Who shows their face vs. who puts the card + #13 The voucher folder — build these two together, they share one dialog)
 
-**Phase 5 (needs #12):** #14 Card statement adjustment — it's an extension of the expense data model #12 introduces
+~~#11 Status board~~ — closed as not planned: no kanban/board screen exists anywhere in the design, only #8's per-stop status chip (thinking/urgent/booked), which already ships as part of #8. Reopen only if a board screen gets designed later.
 
-**Phase 6 (parallel, both need #12 + #14):** #15 Who owes whom (the settle-up math needs the "who's using it" field from #12 and the adjusted amounts from #14) · #16 Mark trip finished (only needs expenses to exist, not the settle-up math, so it can run alongside #15 instead of after it)
+**Phase 5 (needs #7 + #10):** #14 Card statement adjustment — the implementation plan found that bookings (#12/#13) carry no price of their own, so #14 owns the entire expense data model from scratch rather than extending one #12 introduces; a booking's real cost gets logged as a #14 expense instead (e.g. under an "Alojamiento" category)
 
-**Phase 7 (sequential, needs #15 + #16):** #17 Final trip summary — needs both the closed-trip state and the balance numbers
+**Phase 6 (parallel, both need #14):** #15 Who owes whom (the settle-up math reads exclusively from #14's expenses — amount, who paid, who's using it — never from booking records) · #16 Mark trip finished (only needs expenses to exist, not the settle-up math, so it can run alongside #15 instead of after it)
+
+~~Phase 7: #17 Final trip summary~~ — closed as not planned (2026-09-06): the design refresh added a real Balance tab but no separate Resumen screen; #17's three checklist items (total spend, category breakdown, final cost per person) folded permanently into #15's Balance tab instead. See [who-owes-whom.md](./plans/8-15-who-owes-whom.md).
 
 If you've got people to spare, Phase 4 is the widest parallel batch (three independent tracks) — that's the best place to put extra hands once #7 → #8 → #10 are in.
+
+**Deferred (needs #12/#13 + #14 shipped, blocks nothing):** [#37](https://github.com/mimiquate/wonder_split/issues/37) Link a booking to the expense that represents its real cost — #14's plan left this an open Non-goal since there's no real usage data yet to know if the drift risk (a booking's "who's using it" silently diverging from its logged expense's) is worth a schema change for. Revisit once #12/#13 and #14 have real trip data to judge it against; not on the critical path for #15/#16/#17.
+
+**Deferred (needs #7's Grupo screen shipped, blocks nothing):** [#38](https://github.com/mimiquate/wonder_split/issues/38) Remove a trip member — split out of #7 once the design refresh added a "Grupo" screen with a remove-member action; bigger scope than #7 owns (blocking removal if that person has any booking or expense under their name, recomputing the balance view). Not on the critical path for anything else.
