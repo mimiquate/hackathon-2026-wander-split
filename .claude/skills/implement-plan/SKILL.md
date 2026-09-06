@@ -1,19 +1,19 @@
 ---
 name: implement-plan
-description: Build a plan doc (docs/plans/<slug>.md) that's already written — one PR per plan, one commit per phase, paused for a go-ahead between phases. Use when the user wants to start building a plan, e.g. "implement the plan for #8", "build issue #22", "start phase 1 of build-the-route".
+description: Build a plan doc (docs/plans/<order>-<ticket>-<slug>.md) that's already written — one PR per plan, one commit per phase, paused for a go-ahead between phases. Use when the user wants to start building a plan, e.g. "implement the plan for #8", "build issue #22", "start phase 1 of build-the-route".
 ---
 
 # Implement plan
 
-This repo builds a feature phase by phase straight from its `docs/plans/<slug>.md`, written by the `write-plan` skill. One plan equals one PR; each phase lands as its own commit, and the agent stops after every phase to let the user check it before moving on.
+This repo builds a feature phase by phase straight from its `docs/plans/<order>-<ticket>-<slug>.md`, written by the `write-plan` skill. One plan equals one PR; each phase lands as its own commit, and the agent stops after every phase to let the user check it before moving on.
 
 ## When to use this
 
-The user asks to start building a plan that already exists — "implement the plan for #8", "let's build the route builder", "start phase 2 of auth". If `docs/plans/<slug>.md` doesn't exist yet, use the `write-plan` skill first.
+The user asks to start building a plan that already exists — "implement the plan for #8", "let's build the route builder", "start phase 2 of auth". If `docs/plans/<order>-<ticket>-<slug>.md` doesn't exist yet, use the `write-plan` skill first.
 
 ## Process
 
-1. **Read the plan doc fully** (`docs/plans/<slug>.md`) — Context, Scope, Non-goals, Constraints, every Phase, How to QA. Note the GitHub issue number it's tied to.
+1. **Read the plan doc fully** (`docs/plans/<order>-<ticket>-<slug>.md`) — Context, Scope, Non-goals, Constraints, every Phase, How to QA. Note the GitHub issue number it's tied to.
 
 2. **Set up the branch and PR, once, before Phase 1:**
    - Branch off latest `main`, named `issue-N-<slug>` (N = the plan's linked issue).
