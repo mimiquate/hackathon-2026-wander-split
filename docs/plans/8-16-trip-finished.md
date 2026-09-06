@@ -1,12 +1,12 @@
-# wonderSplit Trip Finished
+# 8 · #16 — wonderSplit Trip Finished
 
 ## Context
 
-[Issue #16](https://github.com/mimiquate/wonder_split/issues/16) is the simplest ticket in the whole trip-planning set: tap a "trip completed" action when you get back home, and it stops new expenses from sneaking in by mistake. There's nothing in the design to build against — the only comment on the issue confirms it, and the design's own Home screen just hardcodes a "settled" status chip as a stand-in. [docs/plans/home-dashboard.md](./home-dashboard.md) (#22) already anticipated this: its trip-card status chip currently only ever shows `"Por armar"` or `"En curso"` (a placeholder proxy off whether the trip has stops yet), and that plan says outright "#16 (mark trip finished) is what eventually adds a real 'closed' state on top of it." So this plan has two jobs: add the actual finish action, and give that status chip its third, real state.
+[Issue #16](https://github.com/mimiquate/wonder_split/issues/16) is the simplest ticket in the whole trip-planning set: tap a "trip completed" action when you get back home, and it stops new expenses from sneaking in by mistake. There's nothing in the design to build against — the only comment on the issue confirms it, and the design's own Home screen just hardcodes a "settled" status chip as a stand-in. [docs/plans/4-22-home-dashboard.md](./4-22-home-dashboard.md) (#22) already anticipated this: its trip-card status chip currently only ever shows `"Por armar"` or `"En curso"` (a placeholder proxy off whether the trip has stops yet), and that plan says outright "#16 (mark trip finished) is what eventually adds a real 'closed' state on top of it." So this plan has two jobs: add the actual finish action, and give that status chip its third, real state.
 
-Per [docs/roadmap.md](../roadmap.md) this is Phase 6, running alongside [#15](https://github.com/mimiquate/wonder_split/issues/15) (a separate, parallel plan) rather than after it — #16 only needs expenses to exist ([#14](./expense-tracking-and-adjustment.md)), not #15's settle-up math. It also touches [#12/#13](./booking-attribution-vouchers.md)'s add-booking function, since a finished trip should stop new bookings too, not just new expenses. #17 (final trip summary) is closed as not planned and folded into #15's Balance tab — not a dependency of this ticket.
+Per [docs/roadmap.md](../roadmap.md) this is Phase 6, running alongside [#15](https://github.com/mimiquate/wonder_split/issues/15) (a separate, parallel plan) rather than after it — #16 only needs expenses to exist ([#14](./7-14-expense-tracking-and-adjustment.md)), not #15's settle-up math. It also touches [#12/#13](./6-12-13-booking-attribution-vouchers.md)'s add-booking function, since a finished trip should stop new bookings too, not just new expenses. #17 (final trip summary) is closed as not planned and folded into #15's Balance tab — not a dependency of this ticket.
 
-**Previously an open gap, now resolved:** this plan used to flag that no plan defined the shared in-trip header it put "Finalizar viaje" in. [#8's plan](./build-the-route.md) now owns building that persistent header/tab bar (Ruta/Grupo/Gastos/Balance) as its own Phase 2, since the refreshed design has one — "Finalizar viaje" lives in that header, same as before, now with a real source.
+**Previously an open gap, now resolved:** this plan used to flag that no plan defined the shared in-trip header it put "Finalizar viaje" in. [#8's plan](./4-8-build-the-route.md) now owns building that persistent header/tab bar (Ruta/Grupo/Gastos/Balance) as its own Phase 2, since the refreshed design has one — "Finalizar viaje" lives in that header, same as before, now with a real source.
 
 **The design has also grown real substance around finishing that this plan didn't originally cover: a currency-conversion gate.** #14's expenses split into card-paid (with an optional, per-expense manual "Lo que cobró el banco" adjustment) and cash-paid (deferred to trip-close). The design's `finishTrip` action now opens a "¿Con qué cotización cerramos?" dialog first — grilled with Florencia (2026-09-06) and resolved:
 - **Finishing is blocked** if any card-paid expense still has no manual bank-charge conversion entered. The trip can't be marked finished until every card expense has been individually adjusted from the Gastos tab.
@@ -15,13 +15,13 @@ Per [docs/roadmap.md](../roadmap.md) this is Phase 6, running alongside [#15](ht
 
 ## Scope
 
-- A trip gains a finished state (closed, with a timestamp) alongside its existing name/dates/currency ([#7](./create-trip-invite.md)).
+- A trip gains a finished state (closed, with a timestamp) alongside its existing name/dates/currency ([#7](./3-7-create-trip-invite.md)).
 - A "Finalizar viaje" action, reachable from #8's persistent in-trip header — no longer a single one-step action (see the two items below).
-- **A pre-finish validation gate:** if any card-paid expense ([#14](./expense-tracking-and-adjustment.md)) still has no manual bank-charge conversion entered, clicking "Finalizar viaje" is blocked, listing which expenses need adjustment first (linking back to the Gastos tab) instead of finishing.
+- **A pre-finish validation gate:** if any card-paid expense ([#14](./7-14-expense-tracking-and-adjustment.md)) still has no manual bank-charge conversion entered, clicking "Finalizar viaje" is blocked, listing which expenses need adjustment first (linking back to the Gastos tab) instead of finishing.
 - **A bulk currency-conversion step for cash-paid expenses**, shown once the validation gate above passes: a "¿Con qué cotización cerramos?" dialog offering three rate modes (día / banco / manual entry), a live recomputed trip total as the rate is picked, and a confirm action that applies the chosen rate to every still-pending cash-paid expense at once and finishes the trip in the same action.
-- Once a trip is finished: adding a new expense ([#14](./expense-tracking-and-adjustment.md)'s add-expense function) or a new booking ([#12/#13](./booking-attribution-vouchers.md)'s add-booking function) is rejected, with an inline message in each dialog rather than a silent failure or a generic error.
-- Editing, adjusting, or removing an *existing* expense or booking keeps working after a trip is finished — including [#14](./expense-tracking-and-adjustment.md)'s adjustment flow, since a card statement often lands weeks after the trip nominally ends.
-- The Home dashboard's trip-card status chip ([#22](./home-dashboard.md)) shows a third state, `"Finalizado"`, once a trip is finished — layered on top of its existing `"Por armar"` / `"En curso"` proxy, which still applies to any trip that isn't finished yet.
+- Once a trip is finished: adding a new expense ([#14](./7-14-expense-tracking-and-adjustment.md)'s add-expense function) or a new booking ([#12/#13](./6-12-13-booking-attribution-vouchers.md)'s add-booking function) is rejected, with an inline message in each dialog rather than a silent failure or a generic error.
+- Editing, adjusting, or removing an *existing* expense or booking keeps working after a trip is finished — including [#14](./7-14-expense-tracking-and-adjustment.md)'s adjustment flow, since a card statement often lands weeks after the trip nominally ends.
+- The Home dashboard's trip-card status chip ([#22](./4-22-home-dashboard.md)) shows a third state, `"Finalizado"`, once a trip is finished — layered on top of its existing `"Por armar"` / `"En curso"` proxy, which still applies to any trip that isn't finished yet.
 
 ## Non-goals
 
@@ -30,8 +30,8 @@ Per [docs/roadmap.md](../roadmap.md) this is Phase 6, running alongside [#15](ht
 - **A live/real FX-rate API.** "Día" and "banco" are two more manually-maintained rate presets a person picks from (whoever's finishing the trip types in whatever rate they looked up), not a live external-rate integration — consistent with #14's "currency adjustment is fully manual" rule. Confirm this reading before implementation if it turns out "día"/"banco" are meant to auto-fetch a real rate.
 - **Undoing a bulk conversion.** Once the cash-conversion step runs at finish time, it's a normal #14 adjustment on each affected expense afterward — same as any other post-finish edit (see Constraints), not a special "undo the bulk step" action.
 - **The validation gate applying to cash-paid expenses.** Only card-paid expenses block finishing; a cash-paid expense is exactly what the bulk conversion step exists to sweep up at finish time, not something that needs fixing beforehand.
-- **A confirmation dialog.** Matches this app's existing no-confirmation pattern for other one-way actions ([#10](./zoom-into-city.md) removing a place, [#12/#13](./booking-attribution-vouchers.md) removing a booking, [#14](./expense-tracking-and-adjustment.md) removing an expense) — finishing a trip flips a status, it doesn't delete anything.
-- **Blocking anything besides new expenses and new bookings.** Adding a stop ([#8](./build-the-route.md)), a marked place ([#10](./zoom-into-city.md)), or a note ([#23](./city-notes.md)) on a finished trip isn't touched here — the issue is specifically about expenses (extended here to cover bookings, since both represent new money commitments), not the whole trip going read-only.
+- **A confirmation dialog.** Matches this app's existing no-confirmation pattern for other one-way actions ([#10](./5-10-zoom-into-city.md) removing a place, [#12/#13](./6-12-13-booking-attribution-vouchers.md) removing a booking, [#14](./7-14-expense-tracking-and-adjustment.md) removing an expense) — finishing a trip flips a status, it doesn't delete anything.
+- **Blocking anything besides new expenses and new bookings.** Adding a stop ([#8](./4-8-build-the-route.md)), a marked place ([#10](./5-10-zoom-into-city.md)), or a note ([#23](./6-23-city-notes.md)) on a finished trip isn't touched here — the issue is specifically about expenses (extended here to cover bookings, since both represent new money commitments), not the whole trip going read-only.
 - **Any new screen for #15's who-owes-whom view.** That's a separate, parallel plan — #16 doesn't build or depend on it.
 
 ## Implementation Strategy
@@ -47,8 +47,8 @@ The finished flag and its guards have to exist before anything visible can use t
 
 - Reuse the Ruta Terracota tokens/components already ported everywhere else — `var(--token)`, terracota focus ring, ≥44px tap targets, `prefers-reduced-motion` collapsing entrance animation.
 - The guard lives on the two *create* functions only (#14's add-expense, #12/13's add-booking) — every edit, adjust, and remove function for both expenses and bookings stays untouched and keeps working on a finished trip.
-- The Home dashboard's status-chip logic ([docs/plans/home-dashboard.md](./home-dashboard.md)) already has a two-state proxy (`"Por armar"` / `"En curso"`); this plan adds a third check ahead of that proxy (finished takes priority over either placeholder state), it doesn't replace the existing logic.
-- No trip-level permission model exists yet ([#7](./create-trip-invite.md) stores a role but nothing enforces it) — any trip member can finish a trip, matching how any member can already edit a stop, a place, a booking, or an expense.
+- The Home dashboard's status-chip logic ([docs/plans/4-22-home-dashboard.md](./4-22-home-dashboard.md)) already has a two-state proxy (`"Por armar"` / `"En curso"`); this plan adds a third check ahead of that proxy (finished takes priority over either placeholder state), it doesn't replace the existing logic.
+- No trip-level permission model exists yet ([#7](./3-7-create-trip-invite.md) stores a role but nothing enforces it) — any trip member can finish a trip, matching how any member can already edit a stop, a place, a booking, or an expense.
 - Apply the bulk cash-conversion rate and flip the finished flag as a single atomic operation — a partially-applied conversion (some cash expenses updated, trip not actually finished because something failed midway) is a worse state than either fully succeeding or fully not starting.
 - The card-expense validation check and the finish function itself should both re-verify server-side that no unconverted card expense exists, not just trust the client already checked — the same defense-in-depth this repo already applies elsewhere (e.g. the 10-stop cap in #8).
 
@@ -122,7 +122,7 @@ The "¿Con qué cotización cerramos?" dialog — día/banco/manual rate modes, 
 
 **What this phase delivers**
 
-The "Agregar gasto" dialog ([#14](./expense-tracking-and-adjustment.md)) and the "Sumar reserva" dialog ([#12/#13](./booking-attribution-vouchers.md)) both show a clear inline message when opened (or submitted) against a finished trip, instead of failing with a raw/generic error.
+The "Agregar gasto" dialog ([#14](./7-14-expense-tracking-and-adjustment.md)) and the "Sumar reserva" dialog ([#12/#13](./6-12-13-booking-attribution-vouchers.md)) both show a clear inline message when opened (or submitted) against a finished trip, instead of failing with a raw/generic error.
 
 **Acceptance criteria**
 
