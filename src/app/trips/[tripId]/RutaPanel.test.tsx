@@ -11,10 +11,16 @@ vi.mock("./stops/actions", () => ({
   addStopAction: vi.fn(),
   removeStopAction: vi.fn(),
   updateStopNightsAction: vi.fn(),
+  reorderStopsAction: vi.fn(),
   getStopsAction: vi.fn(),
 }));
 
 import * as stopActions from "./stops/actions";
+
+// Mock Icon component for easier testing
+vi.mock("@/components/core/Icon", () => ({
+  Icon: ({ name, size }: { name: string; size: number }) => <span data-icon={name} />,
+}));
 
 describe("RutaPanel", () => {
   beforeEach(() => {
@@ -272,5 +278,137 @@ describe("RutaPanel", () => {
       },
       { timeout: 1000 },
     );
+  });
+
+  it("move up button moves a stop to previous position", async () => {
+    const user = userEvent.setup();
+
+    const mockStops: TripStopData[] = [
+      {
+        id: "stop-1",
+        tripId: "trip-1",
+        position: 1,
+        city: "Buenos Aires",
+        country: "Argentina",
+        latitude: -34.6037,
+        longitude: -58.3816,
+        nights: 1,
+        status: "thinking",
+        transportMode: null,
+      },
+      {
+        id: "stop-2",
+        tripId: "trip-1",
+        position: 2,
+        city: "Mendoza",
+        country: "Argentina",
+        latitude: -32.8895,
+        longitude: -68.845,
+        nights: 1,
+        status: "thinking",
+        transportMode: null,
+      },
+    ];
+
+    const reorderedStops: TripStopData[] = [
+      { ...mockStops[1], position: 1 },
+      { ...mockStops[0], position: 2 },
+    ];
+
+    vi.mocked(stopActions.getStopsAction).mockResolvedValue(mockStops);
+    vi.mocked(stopActions.reorderStopsAction).mockResolvedValue({
+      ok: true,
+      stops: reorderedStops,
+    });
+
+    render(<RutaPanel tripId="trip-1" tripStartDate="2026-10-12" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Buenos Aires")).toBeInTheDocument();
+      expect(screen.getByText("Mendoza")).toBeInTheDocument();
+    });
+
+    const moveUpButtons = screen.getAllByLabelText("Mover parada arriba");
+    // The first stop's up button should be disabled, second stop's should be enabled
+    expect(moveUpButtons[0]).toBeDisabled(); // Buenos Aires (first)
+    expect(moveUpButtons[1]).not.toBeDisabled(); // Mendoza (second)
+
+    await user.click(moveUpButtons[1]);
+
+    await waitFor(() => {
+      expect(stopActions.reorderStopsAction).toHaveBeenCalled();
+    });
+  });
+
+  it("move down button is disabled on last stop", async () => {
+    const mockStops: TripStopData[] = [
+      {
+        id: "stop-1",
+        tripId: "trip-1",
+        position: 1,
+        city: "Buenos Aires",
+        country: "Argentina",
+        latitude: -34.6037,
+        longitude: -58.3816,
+        nights: 1,
+        status: "thinking",
+        transportMode: null,
+      },
+      {
+        id: "stop-2",
+        tripId: "trip-1",
+        position: 2,
+        city: "Mendoza",
+        country: "Argentina",
+        latitude: -32.8895,
+        longitude: -68.845,
+        nights: 1,
+        status: "thinking",
+        transportMode: null,
+      },
+    ];
+
+    vi.mocked(stopActions.getStopsAction).mockResolvedValue(mockStops);
+
+    render(<RutaPanel tripId="trip-1" tripStartDate="2026-10-12" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Buenos Aires")).toBeInTheDocument();
+      expect(screen.getByText("Mendoza")).toBeInTheDocument();
+    });
+
+    const moveDownButtons = screen.getAllByLabelText("Mover parada abajo");
+    // The last stop's down button should be disabled
+    expect(moveDownButtons[1]).toBeDisabled(); // Mendoza (last)
+    expect(moveDownButtons[0]).not.toBeDisabled(); // Buenos Aires (not last)
+  });
+
+  it("stops are draggable", async () => {
+    const mockStops: TripStopData[] = [
+      {
+        id: "stop-1",
+        tripId: "trip-1",
+        position: 1,
+        city: "Buenos Aires",
+        country: "Argentina",
+        latitude: -34.6037,
+        longitude: -58.3816,
+        nights: 1,
+        status: "thinking",
+        transportMode: null,
+      },
+    ];
+
+    vi.mocked(stopActions.getStopsAction).mockResolvedValue(mockStops);
+
+    const { container } = render(<RutaPanel tripId="trip-1" tripStartDate="2026-10-12" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Buenos Aires")).toBeInTheDocument();
+    });
+
+    // Check that the stop row has draggable attribute
+    const draggableElements = container.querySelectorAll("[draggable]");
+    expect(draggableElements.length).toBeGreaterThan(0);
   });
 });
