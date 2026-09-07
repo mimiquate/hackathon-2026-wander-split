@@ -11,7 +11,7 @@ import { removePlaceAction } from "./actions";
 import { AddPlaceControl } from "./AddPlaceControl";
 import { updateStopNightsAction } from "../actions";
 
-export interface PlanTabProps {
+export interface PlanTabContentProps {
   tripId: string;
   stopId: string;
   cityName: string;
@@ -23,24 +23,17 @@ export interface PlanTabProps {
   stopStartDate: string;
   position: number;
   totalStops: number;
-  initialPlaces: TripPlaceData[];
+  places: TripPlaceData[];
+  onPlacesChange: (places: TripPlaceData[]) => void;
 }
 
-// Reservas/Gastos/Notas have no data source yet (#12/#13, #14-17, #23
-// respectively) — inert placeholders, same treatment auth gave its inert
-// account-menu items. No count shown since there's nothing real to count.
-const INERT_TABS = [
-  { key: "reservas", label: "Reservas" },
-  { key: "gastos", label: "Gastos" },
-  { key: "notas", label: "Notas" },
-] as const;
-
 /**
- * Owns everything this screen can change (nights, the marked-place list, and
- * the map/list highlight) so the tab count, the header's date/position
- * line, and the dates/nights card all stay in agreement without a reload.
+ * The Plan tab's body: the date/position line, the dates/nights card, the
+ * map, add-place search, and the place list. `places` is owned by the
+ * parent (CityDetailTabs) so the tab strip's "Plan · N" count stays in
+ * sync with adds/removes here.
  */
-export function PlanTab({
+export function PlanTabContent({
   tripId,
   stopId,
   cityName,
@@ -49,11 +42,11 @@ export function PlanTab({
   stopStartDate,
   position,
   totalStops,
-  initialPlaces,
-}: PlanTabProps) {
+  places,
+  onPlacesChange,
+}: PlanTabContentProps) {
   const [nights, setNights] = useState(initialNights);
   const [nightsPending, setNightsPending] = useState(false);
-  const [places, setPlaces] = useState(initialPlaces);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const startDate = parseCalendarDate(stopStartDate);
@@ -73,37 +66,19 @@ export function PlanTab({
   }
 
   async function handleRemove(placeId: string) {
-    setPlaces((prev) => prev.filter((place) => place.id !== placeId));
+    const previous = places;
+    onPlacesChange(places.filter((place) => place.id !== placeId));
     if (highlightedId === placeId) setHighlightedId(null);
 
     const result = await removePlaceAction(tripId, stopId, placeId);
     if (!result.ok) {
       // Put it back — the delete didn't actually happen server-side.
-      setPlaces(initialPlaces);
+      onPlacesChange(previous);
     }
   }
 
   return (
     <div className="flex flex-col gap-[var(--space-5)]">
-      <div className="flex gap-[var(--space-2)]">
-        <span
-          aria-current="page"
-          className="inline-flex min-h-[44px] items-center justify-center rounded-pill bg-primary px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-sm)] font-semibold text-text-on-primary"
-        >
-          Plan · {places.length}
-        </span>
-        {INERT_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            disabled
-            className="inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-pill bg-surface-2 px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-sm)] font-semibold text-text-muted opacity-50"
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {startDate && endDate ? (
         <div className="font-mono text-[length:var(--text-xs)] text-text-muted">
           {formatShortDate(startDate)}–{formatShortDate(endDate)} · {nights} noche
@@ -160,7 +135,7 @@ export function PlanTab({
       <AddPlaceControl
         tripId={tripId}
         stopId={stopId}
-        onAdded={(place) => setPlaces((prev) => [...prev, place])}
+        onAdded={(place) => onPlacesChange([...places, place])}
       />
 
       {places.length === 0 ? (
