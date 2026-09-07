@@ -1,3 +1,13 @@
+import { FinalCta, Hero, HowItWorks, SiteFooter, SiteNav } from "@/components/site";
+
 export default function Home() {
-  return <main>wonderSplit</main>;
+  return (
+    <>
+      <SiteNav />
+      <Hero />
+      <HowItWorks />
+      <FinalCta />
+      <SiteFooter />
+    </>
+  );
 }
