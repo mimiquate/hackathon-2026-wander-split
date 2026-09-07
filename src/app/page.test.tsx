@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Home from "./page";
 
@@ -39,20 +39,23 @@ describe("Home page", () => {
 
     const section = document.getElementById("gastos");
     expect(section).toBeInTheDocument();
-    expect(screen.getByText("US$834,10")).toBeInTheDocument();
+    expect(within(section as HTMLElement).getByText("US$1.386,40")).toBeInTheDocument();
     expect(section?.textContent).toContain("Juan le transfiere");
-    expect(section?.textContent).toContain("US$50");
+    expect(section?.textContent).toContain("US$50,00");
     expect(section?.textContent).toContain("a María");
+    expect(section?.textContent).toContain("Nico le transfiere");
+    expect(section?.textContent).toContain("a Tomás");
   });
 
   it("has a #vouchers section with the 3 stop cards", () => {
     render(<Home />);
 
-    const section = document.getElementById("vouchers");
+    const section = document.getElementById("vouchers") as HTMLElement;
     expect(section).toBeInTheDocument();
-    expect(screen.getByText("Lisboa")).toBeInTheDocument();
-    expect(screen.getByText("Oporto")).toBeInTheDocument();
-    expect(screen.getByText("Sevilla")).toBeInTheDocument();
+    const scoped = within(section);
+    expect(scoped.getByText("Sevilla")).toBeInTheDocument();
+    expect(scoped.getByText("Madrid")).toBeInTheDocument();
+    expect(scoped.getByText("Barcelona")).toBeInTheDocument();
   });
 
   it("shows the same avatar color for the same person everywhere they appear", () => {
@@ -61,7 +64,7 @@ describe("Home page", () => {
     const marias = screen.getAllByTitle("María");
     expect(marias.length).toBeGreaterThan(1);
     for (const avatar of marias) {
-      expect(avatar.className).toContain("bg-avatar-4");
+      expect(avatar.className).toContain("bg-avatar-2");
     }
   });
 
@@ -71,6 +74,7 @@ describe("Home page", () => {
     const section = document.getElementById("precios");
     expect(section).toBeInTheDocument();
     expect(section?.querySelectorAll("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Armá tu primer viaje" })).toBeInTheDocument();
   });
 
   it("shows the wordmark and version in the footer", () => {

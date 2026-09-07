@@ -2,17 +2,15 @@ import { RouteMap } from "./RouteMap";
 
 export function RouteSection() {
   return (
-    <section className="border-t border-border px-10 py-[var(--section-gap)]">
-      <div className="mx-auto max-w-[var(--page-max)]">
-        <h2 className="font-display text-[length:var(--text-lg)] font-semibold">
-          La ruta
-        </h2>
-        <div className="mt-6">
+    <section className="border-t border-border bg-surface">
+      <div className="mx-auto max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--space-9)]">
+        <div className="flex flex-wrap justify-between gap-3 font-mono text-[length:var(--text-eyebrow)] tracking-[var(--tracking-eyebrow)] text-text-muted">
+          <span>La ruta</span>
+          <span>1.240 km · 7 noches</span>
+        </div>
+        <div className="mt-[14px] overflow-hidden rounded-xl bg-bg">
           <RouteMap />
         </div>
-        <p className="mt-3 font-mono text-[length:var(--text-xs)] text-text-muted">
-          3 paradas · 1.240 km
-        </p>
       </div>
     </section>
   );

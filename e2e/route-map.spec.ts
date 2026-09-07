@@ -7,31 +7,33 @@ test.describe("route map", () => {
 
     await page.goto("/");
 
-    const map = page.locator('[role="img"][aria-label*="Mapa"]');
+    const map = page.locator('[role="img"][aria-label*="Ruta"]');
     await map.scrollIntoViewIfNeeded();
 
-    await expect(map.locator("text=Lisboa")).toBeVisible();
-    await expect(map.locator("text=Oporto")).toBeVisible();
     await expect(map.locator("text=Sevilla")).toBeVisible();
+    await expect(map.locator("text=Madrid")).toBeVisible();
+    await expect(map.locator("text=Barcelona")).toBeVisible();
     expect(errors).toEqual([]);
   });
 
   test("redraws when the viewport is resized", async ({ page }) => {
     await page.goto("/");
 
-    const map = page.locator('[role="img"][aria-label*="Mapa"]');
+    const map = page.locator('[role="img"][aria-label*="Ruta"]');
     await map.scrollIntoViewIfNeeded();
-    await expect(map.locator("text=Lisboa")).toBeVisible();
+    await expect(map.locator("text=Sevilla")).toBeVisible();
 
-    const svg = map.locator("svg");
-    const before = await svg.getAttribute("width");
+    // `map` is the <svg> itself (role/aria-label live there, matching
+    // route-map.js) — width stays "100%", so the viewBox is what encodes
+    // the actual pixel dimensions redrawn on resize.
+    const before = await map.getAttribute("viewBox");
 
     await page.setViewportSize({ width: 500, height: 900 });
     await page.waitForTimeout(200);
 
-    const after = await svg.getAttribute("width");
+    const after = await map.getAttribute("viewBox");
     expect(after).not.toBe(before);
     // still mounted and labeled correctly after the resize redraw
-    await expect(map.locator("text=Sevilla")).toBeVisible();
+    await expect(map.locator("text=Barcelona")).toBeVisible();
   });
 });
