@@ -17,6 +17,7 @@ import {
   addStopAction,
   removeStopAction,
   updateStopNightsAction,
+  reorderStopsAction,
   getStopsAction,
 } from "./stops/actions";
 
@@ -40,6 +41,8 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [draggedStopId, setDraggedStopId] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
 
   // Load initial stops
   useEffect(() => {
@@ -158,6 +161,37 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
     setStops(computeStopDates(updated, tripStartDate));
   }
 
+  async function handleMoveStop(stopId: string, direction: "up" | "down") {
+    const index = stops.findIndex((s) => s.id === stopId);
+    if (index === -1) return;
+
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= stops.length) return;
+
+    // Create new positions array
+    const positions = stops.map((s, i) => ({
+      stopId: s.id,
+      newPosition: i === index ? newIndex + 1 : i === newIndex ? index + 1 : i + 1,
+    }));
+
+    await handleReorderFromDrag(positions);
+  }
+
+  async function handleReorderFromDrag(positions: Array<{ stopId: string; newPosition: number }>) {
+    setReordering(true);
+    setError(undefined);
+
+    const result = await reorderStopsAction(tripId, positions);
+    if (!result.ok) {
+      setError(result.formError);
+      setReordering(false);
+      return;
+    }
+
+    setStops(computeStopDates(result.stops, tripStartDate));
+    setReordering(false);
+  }
+
   const totalNights = stops.reduce((sum, s) => sum + s.nights, 0);
   const totalKm = calculateTotalDistance(stops);
   const canAddMore = stops.length < MAX_STOPS_PER_TRIP;
@@ -273,13 +307,49 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
             {stops.map((stop, index) => (
               <div
                 key={stop.id}
-                className="flex flex-col gap-[var(--space-2)] pb-[var(--space-3)] border-b border-border-secondary last:border-b-0 last:pb-0"
+                draggable
+                onDragStart={() => setDraggedStopId(stop.id)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (!draggedStopId || draggedStopId === stop.id) return;
+
+                  const draggedIndex = stops.findIndex((s) => s.id === draggedStopId);
+                  const targetIndex = index;
+
+                  // Create new positions array
+                  const positions = stops.map((s, i) => ({
+                    stopId: s.id,
+                    newPosition:
+                      i === draggedIndex
+                        ? targetIndex + 1
+                        : i === targetIndex
+                          ? draggedIndex + 1
+                          : i + 1,
+                  }));
+
+                  handleReorderFromDrag(positions);
+                }}
+                onDragEnd={() => setDraggedStopId(null)}
+                className={[
+                  "flex flex-col gap-[var(--space-2)] pb-[var(--space-3)] border-b border-border-secondary last:border-b-0 last:pb-0",
+                  "cursor-move select-none",
+                  draggedStopId === stop.id ? "opacity-50" : "",
+                ].join(" ")}
               >
                 <div className="flex items-start justify-between gap-[var(--space-3)]">
-                  <div className="flex-1">
-                    <div className="font-medium text-text">{stop.city}</div>
-                    <div className="text-[length:var(--text-xs)] text-text-muted">
-                      {stop.country}
+                  <div className="flex items-start gap-[var(--space-2)] flex-1">
+                    <div className="text-text-muted pt-1 cursor-grab active:cursor-grabbing">
+                      <Icon name="grip-vertical" size={16} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-text">{stop.city}</div>
+                      <div className="text-[length:var(--text-xs)] text-text-muted">
+                        {stop.country}
+                      </div>
                     </div>
                   </div>
                   <button
@@ -299,8 +369,43 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
                   {stop.computedStartDate} a {stop.computedEndDate}
                 </div>
 
-                {/* Nights stepper */}
-                <div className="flex items-center gap-[var(--space-2)]">
+                {/* Nights stepper and move buttons */}
+                <div className="flex items-center gap-[var(--space-2)] flex-wrap">
+                  {/* Up/Down move buttons */}
+                  <div className="flex gap-[var(--space-1)]">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveStop(stop.id, "up")}
+                      disabled={index === 0 || reordering}
+                      aria-label="Mover parada arriba"
+                      title="Mover arriba"
+                      className={[
+                        "inline-flex items-center justify-center w-6 h-6 rounded-sm",
+                        "border border-border-primary text-text hover:bg-surface-secondary",
+                        "text-[length:var(--text-sm)] disabled:opacity-50 disabled:cursor-not-allowed",
+                        FOCUS_RING,
+                      ].join(" ")}
+                    >
+                      <Icon name="chevron-up" size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveStop(stop.id, "down")}
+                      disabled={index === stops.length - 1 || reordering}
+                      aria-label="Mover parada abajo"
+                      title="Mover abajo"
+                      className={[
+                        "inline-flex items-center justify-center w-6 h-6 rounded-sm",
+                        "border border-border-primary text-text hover:bg-surface-secondary",
+                        "text-[length:var(--text-sm)] disabled:opacity-50 disabled:cursor-not-allowed",
+                        FOCUS_RING,
+                      ].join(" ")}
+                    >
+                      <Icon name="chevron-down" size={16} />
+                    </button>
+                  </div>
+
+                  {/* Nights stepper */}
                   <button
                     type="button"
                     onClick={() => handleUpdateNights(stop.id, Math.max(0, stop.nights - 1))}
