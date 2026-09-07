@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCalendarDate, parseCalendarDate } from "./dates";
+import { formatCalendarDate, formatShortDate, parseCalendarDate } from "./dates";
 
 describe("parseCalendarDate", () => {
   it("parses a valid calendar date at UTC midnight", () => {
@@ -43,5 +43,16 @@ describe("parseCalendarDate", () => {
   it("trims surrounding whitespace", () => {
     const date = parseCalendarDate("  2026-10-12  ");
     expect(date?.toISOString()).toEqual("2026-10-12T00:00:00.000Z");
+  });
+});
+
+describe("formatShortDate", () => {
+  it("renders the day and a lowercase Spanish month abbreviation", () => {
+    expect(formatShortDate(new Date("2026-10-12T00:00:00.000Z"))).toEqual("12 oct");
+  });
+
+  it("reads UTC fields regardless of host timezone", () => {
+    expect(formatShortDate(new Date("2026-01-01T00:00:00.000Z"))).toEqual("1 ene");
+    expect(formatShortDate(new Date("2026-12-31T00:00:00.000Z"))).toEqual("31 dic");
   });
 });

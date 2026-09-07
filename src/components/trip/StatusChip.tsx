@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
-export type StatusChipState = "thinking" | "urgent" | "booked" | "settled";
+export type StatusChipState = "thinking" | "urgent" | "booked" | "settled" | "planning" | "active";
 
 export interface StatusChipProps extends HTMLAttributes<HTMLSpanElement> {
   state?: StatusChipState;
@@ -23,6 +23,17 @@ const STATES: Record<StatusChipState, { className: string; label: string }> = {
   settled: {
     className: "bg-[color-mix(in_oklab,var(--success)_18%,var(--surface))] text-success",
     label: "Saldado",
+  },
+  // The dashboard's trip-level state (issue #22) — distinct from the
+  // per-stop states above (#8/#16), sharing this component since both are
+  // just a labeled pill with the same tokens/focus behavior.
+  planning: {
+    className: "bg-surface-2 text-text-muted",
+    label: "Por armar",
+  },
+  active: {
+    className: "bg-success text-text-on-primary",
+    label: "En curso",
   },
 };
 

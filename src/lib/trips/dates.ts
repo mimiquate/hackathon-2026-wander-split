@@ -28,3 +28,14 @@ export function formatCalendarDate(date: Date): string {
   const day = date.getUTCDate().toString().padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+const SHORT_MONTHS = [
+  "ene", "feb", "mar", "abr", "may", "jun",
+  "jul", "ago", "sep", "oct", "nov", "dic",
+] as const;
+
+/** "12 oct" — a trip card's compact date label. Reads UTC fields, same as
+ * formatCalendarDate, so it's deterministic regardless of host timezone. */
+export function formatShortDate(date: Date): string {
+  return `${date.getUTCDate()} ${SHORT_MONTHS[date.getUTCMonth()]}`;
+}
