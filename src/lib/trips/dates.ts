@@ -34,8 +34,9 @@ const SHORT_MONTHS = [
   "jul", "ago", "sep", "oct", "nov", "dic",
 ] as const;
 
-/** "12 oct" — a trip card's compact date label. Reads UTC fields, same as
- * formatCalendarDate, so it's deterministic regardless of host timezone. */
+/** "12 oct" — a compact date label (trip cards, city-detail screen). Reads
+ * UTC fields, same as formatCalendarDate, so it's deterministic regardless
+ * of host timezone. */
 export function formatShortDate(date: Date): string {
   return `${date.getUTCDate()} ${SHORT_MONTHS[date.getUTCMonth()]}`;
 }

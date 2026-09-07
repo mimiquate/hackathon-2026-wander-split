@@ -21,6 +21,39 @@ export async function getStopsForTrip(tripId: string): Promise<TripStopData[]> {
   });
 }
 
+export interface StopDateRange {
+  startDate: Date;
+  endDate: Date;
+  position: number;
+  totalStops: number;
+}
+
+/**
+ * The city-detail header's "12–14 oct · 2 noches · parada 1 de 3" line.
+ * `stops` must be the trip's full, position-ordered list (from
+ * getStopsForTrip) — dates are derived from cumulative nights of every
+ * earlier stop, never stored on the stop itself. Null if `stopId` isn't in
+ * `stops`.
+ */
+export function computeStopDateRange(
+  stops: TripStopData[],
+  tripStartDate: Date,
+  stopId: string,
+): StopDateRange | null {
+  const index = stops.findIndex((s) => s.id === stopId);
+  if (index === -1) return null;
+
+  const nightsBefore = stops.slice(0, index).reduce((sum, s) => sum + s.nights, 0);
+
+  const startDate = new Date(tripStartDate);
+  startDate.setUTCDate(startDate.getUTCDate() + nightsBefore);
+
+  const endDate = new Date(startDate);
+  endDate.setUTCDate(endDate.getUTCDate() + stops[index].nights);
+
+  return { startDate, endDate, position: index + 1, totalStops: stops.length };
+}
+
 export interface AddStopInput {
   tripId: string;
   city: string;
