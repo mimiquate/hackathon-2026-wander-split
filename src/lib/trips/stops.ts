@@ -21,6 +21,13 @@ export async function getStopsForTrip(tripId: string): Promise<TripStopData[]> {
   });
 }
 
+/** Null when the stop doesn't exist or belongs to a different trip. */
+export async function getStop(tripId: string, stopId: string): Promise<TripStopData | null> {
+  const stop = await prisma.tripStop.findUnique({ where: { id: stopId } });
+  if (!stop || stop.tripId !== tripId) return null;
+  return stop;
+}
+
 export interface StopDateRange {
   startDate: Date;
   endDate: Date;

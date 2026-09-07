@@ -12,15 +12,6 @@ import { PlanTab } from "./PlanTab";
 
 export const metadata: Metadata = { title: "Ciudad — wonderSplit" };
 
-// Reservas/Gastos/Notas have no data source yet (#12/#13, #14-17, #23
-// respectively) — inert placeholders, same treatment auth gave its inert
-// account-menu items. No count shown since there's nothing real to count.
-const INERT_TABS = [
-  { key: "reservas", label: "Reservas" },
-  { key: "gastos", label: "Gastos" },
-  { key: "notas", label: "Notas" },
-] as const;
-
 export default async function StopPage({
   params,
 }: {
@@ -63,25 +54,6 @@ export default async function StopPage({
         </div>
       </div>
 
-      <div className="flex gap-[var(--space-2)]">
-        <span
-          aria-current="page"
-          className="inline-flex min-h-[44px] items-center justify-center rounded-pill bg-primary px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-sm)] font-semibold text-text-on-primary"
-        >
-          Plan · {places.length}
-        </span>
-        {INERT_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            disabled
-            className="inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-pill bg-surface-2 px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-sm)] font-semibold text-text-muted opacity-50"
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       <PlanTab
         tripId={tripId}
         stopId={stopId}
@@ -91,7 +63,7 @@ export default async function StopPage({
         stopStartDate={formatCalendarDate(range.startDate)}
         position={range.position}
         totalStops={range.totalStops}
-        places={places}
+        initialPlaces={places}
       />
     </div>
   );
