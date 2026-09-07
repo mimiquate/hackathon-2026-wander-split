@@ -1,5 +1,6 @@
 import { del } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
+import { membershipIdsForStop } from "@/lib/trips/stops";
 
 /**
  * Whether the trip has a confirmed booking anywhere on any stop — update.ts's
@@ -90,17 +91,6 @@ interface BookingFieldErrors {
   reservedById?: string;
   paidById?: string;
   userIds?: string;
-}
-
-/** Every membership id in the trip a stop belongs to — used to validate
- * reservedBy/paidBy/userIds are real crew, never a free-text/foreign id. */
-async function membershipIdsForStop(stopId: string): Promise<Set<string> | null> {
-  const stop = await prisma.tripStop.findUnique({
-    where: { id: stopId },
-    select: { trip: { select: { memberships: { select: { id: true } } } } },
-  });
-  if (!stop) return null;
-  return new Set(stop.trip.memberships.map((membership) => membership.id));
 }
 
 function validateBookingFields(
