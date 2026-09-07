@@ -21,6 +21,46 @@ export async function getStopsForTrip(tripId: string): Promise<TripStopData[]> {
   });
 }
 
+/** Null when the stop doesn't exist or belongs to a different trip. */
+export async function getStop(tripId: string, stopId: string): Promise<TripStopData | null> {
+  const stop = await prisma.tripStop.findUnique({ where: { id: stopId } });
+  if (!stop || stop.tripId !== tripId) return null;
+  return stop;
+}
+
+export interface StopDateRange {
+  startDate: Date;
+  endDate: Date;
+  position: number;
+  totalStops: number;
+}
+
+/**
+ * The city-detail header's "12–14 oct · 2 noches · parada 1 de 3" line.
+ * `stops` must be the trip's full, position-ordered list (from
+ * getStopsForTrip) — dates are derived from cumulative nights of every
+ * earlier stop, never stored on the stop itself. Null if `stopId` isn't in
+ * `stops`.
+ */
+export function computeStopDateRange(
+  stops: TripStopData[],
+  tripStartDate: Date,
+  stopId: string,
+): StopDateRange | null {
+  const index = stops.findIndex((s) => s.id === stopId);
+  if (index === -1) return null;
+
+  const nightsBefore = stops.slice(0, index).reduce((sum, s) => sum + s.nights, 0);
+
+  const startDate = new Date(tripStartDate);
+  startDate.setUTCDate(startDate.getUTCDate() + nightsBefore);
+
+  const endDate = new Date(startDate);
+  endDate.setUTCDate(endDate.getUTCDate() + stops[index].nights);
+
+  return { startDate, endDate, position: index + 1, totalStops: stops.length };
+}
+
 export interface AddStopInput {
   tripId: string;
   city: string;

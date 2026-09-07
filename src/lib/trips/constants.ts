@@ -40,3 +40,17 @@ export function isTransportMode(value: string): value is TransportMode {
 }
 
 export const MAX_STOPS_PER_TRIP = 10;
+
+export const PLACE_KINDS = ["alojamiento", "plan", "idea", "transporte"] as const;
+export type PlaceKind = (typeof PLACE_KINDS)[number];
+
+export function isPlaceKind(value: string): value is PlaceKind {
+  return (PLACE_KINDS as readonly string[]).includes(value);
+}
+
+export const PLACE_KIND_LABELS: Record<PlaceKind, string> = {
+  alojamiento: "Alojamiento",
+  plan: "Plan",
+  idea: "Idea",
+  transporte: "Transporte",
+};
