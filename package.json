@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "postinstall": "prisma generate",
+    "postinstall": "node --env-file-if-exists=.env.local node_modules/.bin/prisma generate",
     "db:migrate": "node --env-file=.env.local node_modules/.bin/prisma migrate dev",
     "db:migrate:test": "node --env-file=.env.test node_modules/.bin/prisma migrate deploy",
     "db:seed": "node --env-file=.env.local --import tsx prisma/seed.ts"
