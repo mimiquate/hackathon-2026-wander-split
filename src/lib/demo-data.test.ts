@@ -16,16 +16,16 @@ describe("demo-data", () => {
     ]);
   });
 
-  it("matches the source stops list exactly", () => {
-    expect(stops.map((s) => s.city)).toEqual(["Lisboa", "Oporto", "Sevilla"]);
+  it("uses the Sevilla → Madrid → Barcelona route", () => {
+    expect(stops.map((s) => s.city)).toEqual(["Sevilla", "Madrid", "Barcelona"]);
     expect(stops.map((s) => s.state)).toEqual(["booked", "urgent", "thinking"]);
     expect(stops.map((s) => s.nights)).toEqual([2, 2, 3]);
   });
 
-  it("matches the source expenses list exactly", () => {
+  it("matches the source expenses list, reskinned to the current route", () => {
     expect(expenses).toHaveLength(5);
     expect(expenses[0]).toEqual({
-      label: "Tren Lisboa–Oporto",
+      label: "Tren Sevilla–Madrid",
       meta: "pagó Juan · 12 oct",
       amount: "€62,00",
       converted: "US$68,40",

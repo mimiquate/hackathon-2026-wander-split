@@ -50,9 +50,9 @@ describe("Home page", () => {
 
     const section = document.getElementById("vouchers");
     expect(section).toBeInTheDocument();
-    expect(screen.getByText("Lisboa")).toBeInTheDocument();
-    expect(screen.getByText("Oporto")).toBeInTheDocument();
     expect(screen.getByText("Sevilla")).toBeInTheDocument();
+    expect(screen.getByText("Madrid")).toBeInTheDocument();
+    expect(screen.getByText("Barcelona")).toBeInTheDocument();
   });
 
   it("shows the same avatar color for the same person everywhere they appear", () => {

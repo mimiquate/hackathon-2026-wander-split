@@ -6,19 +6,34 @@ import type { Feature, FeatureCollection, LineString, MultiPoint } from "geojson
 import { useEffect, useRef, useState } from "react";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
+import { stops as tripStops } from "@/lib/demo-data";
 
 // Same CDN vendor as the Lucide icons (see core/Icon.tsx) — the atlas data
 // itself is never self-hosted, per the plan's non-goal.
 const ATLAS_URL = "https://unpkg.com/world-atlas@2/countries-110m.json";
 
-// ISO 3166-1 numeric country codes.
-const VISITED_COUNTRY_IDS = new Set(["620", "724", "250"]); // Portugal, Spain, France
+// ISO 3166-1 numeric country code.
+const VISITED_COUNTRY_IDS = new Set(["724"]); // Spain
 
-const STOPS: { city: string; coordinates: [number, number] }[] = [
-  { city: "Lisboa", coordinates: [-9.1393, 38.7223] },
-  { city: "Oporto", coordinates: [-8.6291, 41.1579] },
-  { city: "Sevilla", coordinates: [-5.9845, 37.3891] },
-];
+// Real coordinates for whatever cities src/lib/demo-data.ts's `stops` uses —
+// keyed by city name so the map's route can't silently drift from the rest
+// of the page's route the way it did when both were hardcoded separately.
+const CITY_COORDINATES: Record<string, [number, number]> = {
+  Sevilla: [-5.9845, 37.3891],
+  Madrid: [-3.7038, 40.4168],
+  Barcelona: [2.1686, 41.3874],
+};
+
+const STOPS: { city: string; coordinates: [number, number] }[] = tripStops.map(
+  (stop) => ({ city: stop.city, coordinates: CITY_COORDINATES[stop.city] }),
+);
+
+function joinSpanish(items: string[]): string {
+  if (items.length <= 1) return items.join("");
+  return `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
+}
+
+const MAP_LABEL = `Mapa de la ruta: ${joinSpanish(STOPS.map((s) => s.city))}`;
 
 const ROUTE_LINE: Feature<LineString> = {
   type: "Feature",
@@ -29,19 +44,19 @@ const ROUTE_LINE: Feature<LineString> = {
   },
 };
 
-// France's polygon in this atlas includes its overseas territories (French
-// Guiana, etc.), which blows up a fitSize() computed from the "visited"
-// countries' own geometry to a whole-world bounding box. Framing is instead
-// fixed to a padded box around the 3 stops (western Iberia), independent of
-// whatever the country fill geometry actually spans.
+// Framing is a fixed padded box around the stops rather than the "visited"
+// countries' own geometry — Spain's own polygon in this atlas is compact,
+// but France (used on the earlier Lisboa/Oporto/Sevilla route) included
+// overseas territories that blew fitSize() out to a whole-world view, so
+// this stays decoupled from country geometry on principle.
 const FOCUS_EXTENT: Feature<MultiPoint> = {
   type: "Feature",
   properties: null,
   geometry: {
     type: "MultiPoint",
     coordinates: [
-      [-10.6, 35.9],
-      [-4.5, 42.7],
+      [-7.2, 36.2],
+      [3.4, 42.6],
     ],
   },
 };
@@ -189,7 +204,7 @@ export function RouteMap() {
     <div
       ref={containerRef}
       role="img"
-      aria-label="Mapa de la ruta: Lisboa, Oporto y Sevilla"
+      aria-label={MAP_LABEL}
       className="h-[320px] w-full overflow-hidden rounded-2xl border border-border bg-surface-2"
     >
       <svg ref={svgRef} className="block h-full w-full" />

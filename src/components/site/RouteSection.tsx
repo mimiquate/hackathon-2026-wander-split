@@ -10,8 +10,11 @@ export function RouteSection() {
         <div className="mt-6">
           <RouteMap />
         </div>
+        {/* ~1.160 km is a real road-distance estimate for Sevilla→Madrid→Barcelona
+            (the design source's "1.240 km" figure was for the earlier Lisboa→
+            Oporto→Sevilla route, not verbatim for this one). */}
         <p className="mt-3 font-mono text-[length:var(--text-xs)] text-text-muted">
-          3 paradas · 1.240 km
+          3 paradas · 1.160 km
         </p>
       </div>
     </section>

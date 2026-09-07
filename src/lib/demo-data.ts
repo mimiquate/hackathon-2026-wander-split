@@ -1,7 +1,9 @@
-// Ported verbatim from ui_kits/app/data.js in the "wonderSplit Design
-// System" project — the single source every landing-page section reads
-// from, so a person's avatar color (or a stop's details) never drifts
-// between sections.
+// Based on ui_kits/app/data.js in the "wonderSplit Design System" project —
+// the single source every landing-page section reads from, so a person's
+// avatar color (or a stop's details) never drifts between sections. The
+// route itself (stops/expense labels) was swapped to Sevilla → Madrid →
+// Barcelona per product direction, replacing the source's Lisboa → Oporto →
+// Sevilla; crew, settlements, and everything else stay as ported.
 
 export interface CrewMember {
   name: string;
@@ -46,61 +48,61 @@ export const crew: CrewMember[] = [
 
 export const stops: Stop[] = [
   {
-    city: "Lisboa",
+    city: "Sevilla",
     dates: "12–14 oct",
     nights: 2,
     state: "booked",
     items: [
-      { label: "Vuelo EZE → LIS", icon: "plane" },
-      { label: "Airbnb Alfama", icon: "bed-double" },
+      { label: "Vuelo EZE → SVQ", icon: "plane" },
+      { label: "Airbnb Triana", icon: "bed-double" },
     ],
   },
   {
-    city: "Oporto",
+    city: "Madrid",
     dates: "14–16 oct",
     nights: 2,
     state: "urgent",
     items: [
-      { label: "Tren Lisboa–Oporto", icon: "train-front" },
-      { label: "Hostal Ribeira", icon: "bed-double" },
+      { label: "Tren Sevilla–Madrid", icon: "train-front" },
+      { label: "Hostal Malasaña", icon: "bed-double" },
     ],
   },
   {
-    city: "Sevilla",
+    city: "Barcelona",
     dates: "16–19 oct",
     nights: 3,
     state: "thinking",
     items: [
-      { label: "Bus Oporto–Sevilla", icon: "bus" },
-      { label: "Airbnb Triana (4 de 6)", icon: "bed-double" },
+      { label: "Tren Madrid–Barcelona", icon: "train-front" },
+      { label: "Airbnb Gràcia (4 de 6)", icon: "bed-double" },
     ],
   },
 ];
 
 export const expenses: Expense[] = [
   {
-    label: "Tren Lisboa–Oporto",
+    label: "Tren Sevilla–Madrid",
     meta: "pagó Juan · 12 oct",
     amount: "€62,00",
     converted: "US$68,40",
     who: [0, 1, 2],
   },
   {
-    label: "Airbnb Alfama",
+    label: "Airbnb Triana",
     meta: "pagó María · 11 oct",
     amount: "€384,00",
     converted: "US$423,00",
     who: [0, 1, 2, 3, 4, 5],
   },
   {
-    label: "Cena en Cais do Sodré",
+    label: "Cena en El Arenal",
     meta: "pagó Sofi · 13 oct",
     amount: "€96,50",
     converted: "US$106,30",
     who: [1, 2, 4],
   },
   {
-    label: "Airbnb Triana",
+    label: "Airbnb Gràcia",
     meta: "pagó María · 4 de 6",
     amount: "US$210,00",
     who: [1, 2, 3, 5],
