@@ -42,6 +42,7 @@ export function TripMapScreen({ tripId, tripName, stops }: TripMapScreenProps) {
               city: s.city,
               latitude: s.latitude,
               longitude: s.longitude,
+              transportMode: s.transportMode,
             }))}
             numbered
             interactive

@@ -340,6 +340,7 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
               city: s.city,
               latitude: s.latitude,
               longitude: s.longitude,
+              transportMode: s.transportMode,
             }))}
             numbered
             interactive
