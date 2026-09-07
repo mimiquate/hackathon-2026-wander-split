@@ -25,6 +25,13 @@ function initials(name: string) {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
+/** The same per-index background class Avatar renders with — exported so a
+ * color picker can show swatches that actually match, without a second copy
+ * of the ramp. Wraps modulo-safely, same as Avatar itself. */
+export function avatarRampClass(colorIndex: number) {
+  return RAMP_CLASSES[((colorIndex % RAMP_CLASSES.length) + RAMP_CLASSES.length) % RAMP_CLASSES.length];
+}
+
 /** Identifies a traveller. Colors are assigned per person, never by list position. */
 export function Avatar({
   name,
@@ -37,7 +44,7 @@ export function Avatar({
 }: AvatarProps) {
   const px = SIZE_PX[size];
   const fontSize = px <= 24 ? 9 : px <= 30 ? 11 : 14;
-  const ramp = RAMP_CLASSES[((colorIndex % RAMP_CLASSES.length) + RAMP_CLASSES.length) % RAMP_CLASSES.length];
+  const ramp = avatarRampClass(colorIndex);
 
   return (
     <span

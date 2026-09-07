@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { signupCore } from "@/lib/auth/signup";
+import { isSafeRedirectPath } from "@/lib/safe-redirect";
 
 export interface SignupFormState {
   fieldErrors?: { email?: string; password?: string };
@@ -15,6 +16,7 @@ export async function signupAction(
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const termsAccepted = formData.get("terms") === "on";
+  const next = String(formData.get("next") ?? "");
 
   const result = await signupCore({ email, password, termsAccepted });
 
@@ -22,5 +24,6 @@ export async function signupAction(
     return { fieldErrors: result.fieldErrors, formError: result.formError };
   }
 
-  redirect(`/verify?email=${encodeURIComponent(result.email)}`);
+  const nextParam = isSafeRedirectPath(next) ? `&next=${encodeURIComponent(next)}` : "";
+  redirect(`/verify?email=${encodeURIComponent(result.email)}${nextParam}`);
 }

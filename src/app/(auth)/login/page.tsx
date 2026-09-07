@@ -4,14 +4,18 @@ import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = { title: "Entrar — wonderSplit" };
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+  const params = await searchParams;
+  const justCreated = params.created === "1";
+  const next = typeof params.next === "string" ? params.next : "";
+
   return (
     <AuthShell
       eyebrow="De vuelta"
       title="Entrá a wonderSplit"
       description="Seguí armando la ruta donde la dejaste."
     >
-      <LoginForm />
+      <LoginForm justCreated={justCreated} next={next} />
     </AuthShell>
   );
 }
