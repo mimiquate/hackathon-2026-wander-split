@@ -32,3 +32,22 @@ export async function findTripMembership(
     role: membership.role as TripRole,
   };
 }
+
+export interface TripMemberSummary {
+  id: string;
+  displayName: string;
+  colorIndex: number;
+}
+
+/**
+ * Every member of the trip, oldest first — the crew list "Quién reservó,"
+ * "Quién pagó," and "Quién lo usa" (#12/#13) are drawn from, and how a
+ * booking's stored membership ids get resolved back to a display name.
+ */
+export async function getTripMembers(tripId: string): Promise<TripMemberSummary[]> {
+  return prisma.tripMembership.findMany({
+    where: { tripId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, displayName: true, colorIndex: true },
+  });
+}

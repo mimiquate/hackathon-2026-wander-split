@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { StatusChip, type StatusChipState } from "@/components/trip/StatusChip";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { findTripMembership } from "@/lib/trips/membership";
+import { findTripMembership, getTripMembers } from "@/lib/trips/membership";
 import { getTripEditPanel } from "@/lib/trips/update";
 import { computeStopDateRange, getStopsForTrip } from "@/lib/trips/stops";
 import { getPlacesForStop } from "@/lib/trips/places";
+import { getBookingsForStop } from "@/lib/trips/bookings";
 import { formatCalendarDate, parseCalendarDate } from "@/lib/trips/dates";
 import { BackButton } from "./BackButton";
-import { PlanTab } from "./PlanTab";
+import { CityDetailTabs } from "./CityDetailTabs";
 
 export const metadata: Metadata = { title: "Ciudad — wonderSplit" };
 
@@ -41,6 +42,8 @@ export default async function StopPage({
   if (!range) notFound();
 
   const places = await getPlacesForStop(stopId);
+  const bookings = await getBookingsForStop(stopId);
+  const tripMembers = await getTripMembers(tripId);
 
   return (
     <div className="mx-auto flex min-h-svh max-w-[480px] flex-col gap-[var(--space-6)] px-[var(--gutter)] py-[var(--space-6)]">
@@ -54,7 +57,7 @@ export default async function StopPage({
         </div>
       </div>
 
-      <PlanTab
+      <CityDetailTabs
         tripId={tripId}
         stopId={stopId}
         cityName={stop.city}
@@ -64,6 +67,8 @@ export default async function StopPage({
         position={range.position}
         totalStops={range.totalStops}
         initialPlaces={places}
+        bookings={bookings}
+        tripMembers={tripMembers}
       />
     </div>
   );

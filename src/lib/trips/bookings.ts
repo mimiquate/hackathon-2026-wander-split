@@ -21,32 +21,6 @@ export async function getBookingTripId(bookingId: string): Promise<string | null
   return booking?.stop.tripId ?? null;
 }
 
-export interface BookingListItem {
-  id: string;
-  label: string;
-  reservedById: string;
-  paidById: string;
-  hasVoucher: boolean;
-}
-
-/** The Reservas tab's list — cheap enough for a row to just need a
- * has-a-voucher flag, not the files themselves (see getBooking for that). */
-export async function getBookingsForStop(stopId: string): Promise<BookingListItem[]> {
-  const bookings = await prisma.booking.findMany({
-    where: { stopId },
-    orderBy: { createdAt: "asc" },
-    include: { _count: { select: { vouchers: true } } },
-  });
-
-  return bookings.map((booking) => ({
-    id: booking.id,
-    label: booking.label,
-    reservedById: booking.reservedById,
-    paidById: booking.paidById,
-    hasVoucher: booking._count.vouchers > 0,
-  }));
-}
-
 export interface BookingVoucher {
   id: string;
   url: string;
@@ -64,15 +38,15 @@ export interface BookingDetail {
   vouchers: BookingVoucher[];
 }
 
-/** Null when the booking doesn't exist or belongs to a different stop. */
-export async function getBooking(stopId: string, bookingId: string): Promise<BookingDetail | null> {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: { users: true, vouchers: true },
-  });
-
-  if (!booking || booking.stopId !== stopId) return null;
-
+function toBookingDetail(booking: {
+  id: string;
+  stopId: string;
+  label: string;
+  reservedById: string;
+  paidById: string;
+  users: { membershipId: string }[];
+  vouchers: BookingVoucher[];
+}): BookingDetail {
   return {
     id: booking.id,
     stopId: booking.stopId,
@@ -82,6 +56,33 @@ export async function getBooking(stopId: string, bookingId: string): Promise<Boo
     userIds: booking.users.map((user) => user.membershipId),
     vouchers: booking.vouchers,
   };
+}
+
+/**
+ * Every booking for a stop, full detail included — the Reservas tab's list
+ * and its per-booking detail view read from the same array (one query, no
+ * per-row round trip once a booking is clicked open).
+ */
+export async function getBookingsForStop(stopId: string): Promise<BookingDetail[]> {
+  const bookings = await prisma.booking.findMany({
+    where: { stopId },
+    orderBy: { createdAt: "asc" },
+    include: { users: true, vouchers: true },
+  });
+
+  return bookings.map(toBookingDetail);
+}
+
+/** Null when the booking doesn't exist or belongs to a different stop. */
+export async function getBooking(stopId: string, bookingId: string): Promise<BookingDetail | null> {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { users: true, vouchers: true },
+  });
+
+  if (!booking || booking.stopId !== stopId) return null;
+
+  return toBookingDetail(booking);
 }
 
 interface BookingFieldErrors {
