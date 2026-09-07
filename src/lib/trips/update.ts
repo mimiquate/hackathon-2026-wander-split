@@ -8,6 +8,10 @@ export interface TripEditPanel {
   name: string;
   startDate: string; // "YYYY-MM-DD"
   canEditStartDate: boolean;
+  // "USD" | "EUR" — see TRIP_CURRENCIES. An expense's adjusted amount
+  // (#14) is always in this currency, so the city-detail screen reads it
+  // from here rather than adding a separate trip-currency query.
+  currency: string;
 }
 
 /**
@@ -18,7 +22,7 @@ export interface TripEditPanel {
 export async function getTripEditPanel(tripId: string): Promise<TripEditPanel | null> {
   const trip = await prisma.trip.findUnique({
     where: { id: tripId },
-    select: { id: true, name: true, startDate: true },
+    select: { id: true, name: true, startDate: true, currency: true },
   });
   if (!trip) return null;
 
@@ -27,6 +31,7 @@ export async function getTripEditPanel(tripId: string): Promise<TripEditPanel | 
     name: trip.name,
     startDate: formatCalendarDate(trip.startDate),
     canEditStartDate: !(await hasAnyBooking(tripId)),
+    currency: trip.currency,
   };
 }
 

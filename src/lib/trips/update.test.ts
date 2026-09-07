@@ -138,6 +138,7 @@ describe("getTripEditPanel", () => {
       name: "Trip Edit Panel",
       startDate: "2026-10-12",
       canEditStartDate: true,
+      currency: "USD",
     });
   });
 

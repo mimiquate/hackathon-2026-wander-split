@@ -7,6 +7,7 @@ import { getTripEditPanel } from "@/lib/trips/update";
 import { computeStopDateRange, getStopsForTrip } from "@/lib/trips/stops";
 import { getPlacesForStop } from "@/lib/trips/places";
 import { getBookingsForStop } from "@/lib/trips/bookings";
+import { getExpensesForStop } from "@/lib/trips/expenses";
 import { formatCalendarDate, parseCalendarDate } from "@/lib/trips/dates";
 import { BackButton } from "./BackButton";
 import { CityDetailTabs } from "./CityDetailTabs";
@@ -43,6 +44,7 @@ export default async function StopPage({
 
   const places = await getPlacesForStop(stopId);
   const bookings = await getBookingsForStop(stopId);
+  const expenses = await getExpensesForStop(stopId);
   const tripMembers = await getTripMembers(tripId);
 
   return (
@@ -68,7 +70,9 @@ export default async function StopPage({
         totalStops={range.totalStops}
         initialPlaces={places}
         initialBookings={bookings}
+        expenses={expenses}
         tripMembers={tripMembers}
+        tripCurrency={editPanel.currency}
       />
     </div>
   );

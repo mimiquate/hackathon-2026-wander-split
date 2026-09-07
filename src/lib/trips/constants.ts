@@ -65,6 +65,14 @@ export function isExpenseCategory(value: string): value is ExpenseCategory {
   return (EXPENSE_CATEGORIES as readonly string[]).includes(value);
 }
 
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  transporte: "Transporte",
+  alojamiento: "Alojamiento",
+  comida: "Comida",
+  actividades: "Actividades",
+  otro: "Otro",
+};
+
 // Wider than TRIP_CURRENCIES — an expense can be paid in any currency
 // encountered while traveling, not just the trip's own USD/EUR.
 export const EXPENSE_CURRENCIES = ["USD", "EUR", "ARS", "GBP", "BRL", "CLP", "UYU", "MXN"] as const;
@@ -80,3 +88,8 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 export function isPaymentMethod(value: string): value is PaymentMethod {
   return (PAYMENT_METHODS as readonly string[]).includes(value);
 }
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  efectivo: "Efectivo",
+  tarjeta: "Tarjeta",
+};
