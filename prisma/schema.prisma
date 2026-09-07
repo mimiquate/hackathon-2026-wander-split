@@ -86,6 +86,7 @@ model Trip {
   memberships  TripMembership[]
   invite       TripInvite?
   reservations TripInviteReservation[]
+  stops        TripStop[]
 }
 
 model TripMembership {
@@ -139,4 +140,26 @@ model TripInviteReservation {
   claimedByMembership TripMembership? @relation(fields: [claimedByMembershipId], references: [id], onDelete: Cascade)
 
   @@unique([tripId, email])
+}
+
+// A stop in a trip's route — an ordered list of cities visited. Position is
+// 1-based and reindexed when stops are removed. Dates are derived from the
+// trip's startDate plus cumulative prior nights, never stored.
+model TripStop {
+  id            String   @id @default(cuid())
+  tripId        String
+  position      Int
+  city          String
+  country       String
+  latitude      Float
+  longitude     Float
+  nights        Int      @default(1)
+  status        String   @default("thinking")
+  transportMode String?
+  createdAt     DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, position])
+  @@index([tripId])
 }
