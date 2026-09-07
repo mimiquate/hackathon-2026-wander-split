@@ -20,7 +20,7 @@ export async function saveFirstRunAction(
   const avatarColorIndex = colorRaw !== null && colorRaw !== "" ? Number(colorRaw) : undefined;
 
   await completeFirstRun({ userId: user.id, name: name || undefined, avatarColorIndex });
-  redirect("/");
+  redirect("/home");
 }
 
 export async function skipFirstRunAction(
@@ -30,5 +30,5 @@ export async function skipFirstRunAction(
   if (!user) redirect("/login");
 
   await completeFirstRun({ userId: user.id });
-  redirect("/");
+  redirect("/home");
 }

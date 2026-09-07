@@ -8,6 +8,7 @@ import { authConfig } from "@/lib/auth/config";
 import {
   createDatabaseSession,
   deleteDatabaseSession,
+  isSessionValid,
   resolveAuthRedirectPath,
   SESSION_MAX_AGE_SECONDS,
 } from "@/lib/auth/session";
@@ -65,6 +66,16 @@ describe("database sessions", () => {
     expect(await readSession("not-a-real-token")).toBeNull();
   });
 
+  it("isSessionValid returns true for a valid session, false for expired/missing", async () => {
+    const { sessionToken } = await createDatabaseSession(userId);
+    expect(await isSessionValid(sessionToken)).toBe(true);
+
+    await deleteDatabaseSession(sessionToken);
+    expect(await isSessionValid(sessionToken)).toBe(false);
+
+    expect(await isSessionValid("not-a-real-token")).toBe(false);
+  });
+
   describe("resolveAuthRedirectPath", () => {
     it("returns /firstrun for a user with firstRunCompletedAt unset", async () => {
       const { sessionToken } = await createDatabaseSession(userId);
@@ -72,14 +83,14 @@ describe("database sessions", () => {
       expect(path).toEqual("/firstrun");
     });
 
-    it("returns / for a user with firstRunCompletedAt set", async () => {
+    it("returns /home for a user with firstRunCompletedAt set", async () => {
       await prisma.user.update({
         where: { id: userId },
         data: { firstRunCompletedAt: new Date() },
       });
       const { sessionToken } = await createDatabaseSession(userId);
       const path = await resolveAuthRedirectPath(sessionToken);
-      expect(path).toEqual("/");
+      expect(path).toEqual("/home");
     });
   });
 });

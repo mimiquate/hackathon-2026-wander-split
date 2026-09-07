@@ -44,7 +44,12 @@ export async function getCurrentUser() {
   return getUserBySessionToken(sessionToken);
 }
 
-export async function resolveAuthRedirectPath(sessionToken: string): Promise<"/" | "/firstrun"> {
+export async function isSessionValid(sessionToken: string): Promise<boolean> {
   const user = await getUserBySessionToken(sessionToken);
-  return user?.firstRunCompletedAt ? "/" : "/firstrun";
+  return user !== null;
+}
+
+export async function resolveAuthRedirectPath(sessionToken: string): Promise<"/home" | "/firstrun"> {
+  const user = await getUserBySessionToken(sessionToken);
+  return user?.firstRunCompletedAt ? "/home" : "/firstrun";
 }
