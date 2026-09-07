@@ -51,11 +51,11 @@ export function StopCard({
         .join(" ")}
       {...rest}
     >
-      <div className="flex items-start gap-[var(--space-4)]">
+      <div className="flex flex-wrap items-start gap-x-[var(--space-4)] gap-y-2">
         <span className="mt-0.5 flex text-primary">
           <Icon name="map-pin" size={18} />
         </span>
-        <div className="min-w-0 flex-1">
+        <div className="flex-1">
           <div className="font-display text-[length:var(--text-md)] font-bold">
             {city}
           </div>

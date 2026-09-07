@@ -33,7 +33,7 @@ export function SettleRow({
   return (
     <div
       className={[
-        "flex items-center gap-[var(--space-4)] border-t border-dashed border-border pt-[var(--space-5)] font-body text-[length:var(--text-sm)] text-text",
+        "flex items-center gap-[var(--space-4)] border-t border-dashed border-border-strong pt-[var(--space-5)] font-body text-[length:var(--text-sm)] text-text",
         done ? "opacity-60" : "opacity-100",
         className,
       ]
