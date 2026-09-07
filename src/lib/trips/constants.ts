@@ -24,3 +24,19 @@ export function isTripCurrency(value: string): value is TripCurrency {
 // Prisma's node:*-dependent driver into the browser bundle.
 export const START_DATE_LOCKED_MESSAGE =
   "Ya hay una reserva confirmada en este viaje, así que no se puede cambiar la fecha de inicio.";
+
+export const TRIP_STOP_STATUSES = ["thinking", "urgent", "booked"] as const;
+export type TripStopStatus = (typeof TRIP_STOP_STATUSES)[number];
+
+export function isTripStopStatus(value: string): value is TripStopStatus {
+  return (TRIP_STOP_STATUSES as readonly string[]).includes(value);
+}
+
+export const TRANSPORT_MODES = ["flight", "train", "rental_car"] as const;
+export type TransportMode = (typeof TRANSPORT_MODES)[number];
+
+export function isTransportMode(value: string): value is TransportMode {
+  return (TRANSPORT_MODES as readonly string[]).includes(value);
+}
+
+export const MAX_STOPS_PER_TRIP = 10;
