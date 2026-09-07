@@ -30,10 +30,15 @@ export function SiteNav() {
           ))}
         </nav>
         <div className="flex items-center gap-[var(--space-3)]">
-          <Button variant="ghost" size="sm" className="max-md:min-h-tap-min">
+          <Button
+            variant="ghost"
+            size="sm"
+            href="/login"
+            className="max-md:min-h-tap-min"
+          >
             Ingresar
           </Button>
-          <Button size="sm" className="max-md:min-h-tap-min">
+          <Button size="sm" href="/signup" className="max-md:min-h-tap-min">
             Armar un viaje
           </Button>
         </div>

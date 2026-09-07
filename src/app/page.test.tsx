@@ -68,13 +68,15 @@ describe("Home page", () => {
     }
   });
 
-  it("has a #precios section with exactly one button", () => {
+  it("has a #precios section with exactly one CTA, linking to signup", () => {
     render(<Home />);
 
-    const section = document.getElementById("precios");
+    const section = document.getElementById("precios") as HTMLElement;
     expect(section).toBeInTheDocument();
-    expect(section?.querySelectorAll("button")).toHaveLength(1);
-    expect(screen.getByRole("button", { name: "Armá tu primer viaje" })).toBeInTheDocument();
+    expect(within(section).getAllByRole("link")).toHaveLength(1);
+    expect(
+      within(section).getByRole("link", { name: "Armá tu primer viaje" }),
+    ).toHaveAttribute("href", "/signup");
   });
 
   it("shows the wordmark and version in the footer", () => {

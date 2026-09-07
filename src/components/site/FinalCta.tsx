@@ -21,7 +21,7 @@ export function FinalCta() {
             Armalo en dos minutos y compartí el link con tu banda.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-[10px]">
-            <Button size="lg" iconRight="arrow-right">
+            <Button size="lg" iconRight="arrow-right" href="/signup">
               Armá tu primer viaje
             </Button>
           </div>
