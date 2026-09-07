@@ -22,9 +22,9 @@ export function HowItWorks() {
   return (
     <section
       id="como-funciona"
-      className="scroll-mt-20 border-t border-border px-[var(--gutter)] py-[var(--section-gap)]"
+      className="scroll-mt-20 border-t border-border"
     >
-      <div className="mx-auto max-w-[var(--page-max)]">
+      <div className="mx-auto max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--section-gap)]">
         <h2 className="font-display text-[length:var(--text-lg)] font-semibold leading-[var(--leading-snug)]">
           Cómo funciona
         </h2>
