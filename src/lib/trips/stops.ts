@@ -28,6 +28,21 @@ export async function getStop(tripId: string, stopId: string): Promise<TripStopD
   return stop;
 }
 
+/**
+ * Every membership id in the trip a stop belongs to — shared by
+ * bookings.ts and expenses.ts to validate a "reservedBy"/"paidBy"/"who's
+ * using it" value is real crew, never a free-text/foreign id. Null when
+ * the stop doesn't exist.
+ */
+export async function membershipIdsForStop(stopId: string): Promise<Set<string> | null> {
+  const stop = await prisma.tripStop.findUnique({
+    where: { id: stopId },
+    select: { trip: { select: { memberships: { select: { id: true } } } } },
+  });
+  if (!stop) return null;
+  return new Set(stop.trip.memberships.map((membership) => membership.id));
+}
+
 export interface StopDateRange {
   startDate: Date;
   endDate: Date;

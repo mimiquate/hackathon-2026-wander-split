@@ -109,6 +109,8 @@ model TripMembership {
   bookingsReserved   Booking[]              @relation("BookingReservedBy")
   bookingsPaid       Booking[]              @relation("BookingPaidBy")
   bookingUsages      BookingUser[]
+  expensesPaid       Expense[]              @relation("ExpensePaidBy")
+  expenseUsages      ExpenseUser[]
 
   @@unique([tripId, userId])
   @@index([userId])
@@ -164,6 +166,7 @@ model TripStop {
   trip     Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
   places   TripPlace[]
   bookings Booking[]
+  expenses Expense[]
 
   @@unique([tripId, position])
   @@index([tripId])
@@ -243,4 +246,51 @@ model VoucherFile {
   // occasionally creating a duplicate row for one file.
   @@unique([bookingId, url])
   @@index([bookingId])
+}
+
+// A logged expense, belonging to a stop like TripPlace (#10) and Booking
+// (#12/#13). Deliberately not linked to a Booking (see #14's plan
+// Non-goals) — the two stay independently-entered records even when one
+// represents a booking's real cost.
+model Expense {
+  id               String   @id @default(cuid())
+  stopId           String
+  label            String
+  // "transporte" | "alojamiento" | "comida" | "actividades" | "otro" — see
+  // EXPENSE_CATEGORIES in src/lib/trips/constants.ts.
+  category         String
+  // "efectivo" | "tarjeta" — see PAYMENT_METHODS in constants.ts. Just a
+  // label plus downstream routing for #16's finish-time behavior; nothing
+  // in this ticket treats the two differently.
+  paymentMethod    String
+  // What was actually logged in the moment — kept around for reference,
+  // never auto-converted.
+  originalAmount   Float
+  originalCurrency String
+  // Null until the real statement amount is entered (Phase 4) — always in
+  // the trip's own currency (Trip.currency) once set. A null adjustedAmount
+  // is the "Pendiente de ajuste" state #15 later reads as provisional.
+  adjustedAmount   Float?
+  paidById         String
+  createdAt        DateTime @default(now())
+
+  stop   TripStop       @relation(fields: [stopId], references: [id], onDelete: Cascade)
+  paidBy TripMembership @relation("ExpensePaidBy", fields: [paidById], references: [id])
+  users  ExpenseUser[]
+
+  @@index([stopId])
+}
+
+// "Quién lo usa" — a many-to-many against trip members, same shape as
+// BookingUser (#12/#13); an expense can cover one person or the whole crew.
+model ExpenseUser {
+  id           String @id @default(cuid())
+  expenseId    String
+  membershipId String
+
+  expense    Expense        @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  membership TripMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, membershipId])
+  @@index([membershipId])
 }
