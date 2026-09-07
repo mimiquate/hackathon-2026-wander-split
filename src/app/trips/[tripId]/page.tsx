@@ -58,7 +58,7 @@ export default async function TripPage({
       canEditStartDate={editPanel.canEditStartDate}
       defaultTab={defaultTab}
       children={{
-        ruta: <RutaPanel />,
+        ruta: <RutaPanel tripId={tripId} tripStartDate={editPanel.startDate} />,
         grupo: (
           <GrupoTab
             tripId={tripId}
