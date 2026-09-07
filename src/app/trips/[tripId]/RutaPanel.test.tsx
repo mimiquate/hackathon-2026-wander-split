@@ -12,6 +12,7 @@ vi.mock("./stops/actions", () => ({
   removeStopAction: vi.fn(),
   updateStopNightsAction: vi.fn(),
   reorderStopsAction: vi.fn(),
+  cycleStopStatusAction: vi.fn(),
   getStopsAction: vi.fn(),
 }));
 
@@ -410,5 +411,123 @@ describe("RutaPanel", () => {
     // Check that the stop row has draggable attribute
     const draggableElements = container.querySelectorAll("[draggable]");
     expect(draggableElements.length).toBeGreaterThan(0);
+  });
+
+  it("status chip shows initial status and correct label", async () => {
+    const mockStop: TripStopData = {
+      id: "stop-1",
+      tripId: "trip-1",
+      position: 1,
+      city: "Buenos Aires",
+      country: "Argentina",
+      latitude: -34.6037,
+      longitude: -58.3816,
+      nights: 1,
+      status: "thinking",
+      transportMode: null,
+    };
+
+    vi.mocked(stopActions.getStopsAction).mockResolvedValue([mockStop]);
+
+    render(<RutaPanel tripId="trip-1" tripStartDate="2026-10-12" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Lo estamos pensando")).toBeInTheDocument();
+    });
+  });
+
+  it("clicking status chip cycles through states", async () => {
+    const user = userEvent.setup();
+
+    const mockStop: TripStopData = {
+      id: "stop-1",
+      tripId: "trip-1",
+      position: 1,
+      city: "Buenos Aires",
+      country: "Argentina",
+      latitude: -34.6037,
+      longitude: -58.3816,
+      nights: 1,
+      status: "thinking",
+      transportMode: null,
+    };
+
+    vi.mocked(stopActions.getStopsAction).mockResolvedValue([mockStop]);
+    vi.mocked(stopActions.cycleStopStatusAction)
+      .mockResolvedValueOnce({ ok: true, stop: { ...mockStop, status: "urgent" }, newStatus: "urgent" })
+      .mockResolvedValueOnce({ ok: true, stop: { ...mockStop, status: "booked" }, newStatus: "booked" })
+      .mockResolvedValueOnce({ ok: true, stop: { ...mockStop, status: "thinking" }, newStatus: "thinking" });
+
+    render(<RutaPanel tripId="trip-1" tripStartDate="2026-10-12" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Lo estamos pensando")).toBeInTheDocument();
+    });
+
+    const statusChip = screen.getByText("Lo estamos pensando");
+
+    // Click to cycle to "urgent"
+    await user.click(statusChip);
+    await waitFor(() => {
+      expect(screen.getByText("Urgente")).toBeInTheDocument();
+    });
+
+    const urgentChip = screen.getByText("Urgente");
+    // Click to cycle to "booked"
+    await user.click(urgentChip);
+    await waitFor(() => {
+      expect(screen.getByText("Confirmado")).toBeInTheDocument();
+    });
+
+    const bookedChip = screen.getByText("Confirmado");
+    // Click to cycle back to "thinking"
+    await user.click(bookedChip);
+    await waitFor(() => {
+      expect(screen.getByText("Lo estamos pensando")).toBeInTheDocument();
+    });
+
+    // Verify cycleStopStatusAction was called 3 times
+    expect(stopActions.cycleStopStatusAction).toHaveBeenCalledTimes(3);
+  });
+
+  it("status chip click doesn't bubble to row drag", async () => {
+    const user = userEvent.setup();
+
+    const mockStop: TripStopData = {
+      id: "stop-1",
+      tripId: "trip-1",
+      position: 1,
+      city: "Buenos Aires",
+      country: "Argentina",
+      latitude: -34.6037,
+      longitude: -58.3816,
+      nights: 1,
+      status: "thinking",
+      transportMode: null,
+    };
+
+    vi.mocked(stopActions.getStopsAction).mockResolvedValue([mockStop]);
+    vi.mocked(stopActions.cycleStopStatusAction).mockResolvedValue({
+      ok: true,
+      stop: { ...mockStop, status: "urgent" },
+      newStatus: "urgent",
+    });
+
+    const { container } = render(<RutaPanel tripId="trip-1" tripStartDate="2026-10-12" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Lo estamos pensando")).toBeInTheDocument();
+    });
+
+    const statusChip = screen.getByText("Lo estamos pensando");
+    const stopRow = container.querySelector("[draggable]");
+
+    // Click status chip
+    await user.click(statusChip);
+
+    // Verify cycleStopStatusAction was called (not drag)
+    await waitFor(() => {
+      expect(stopActions.cycleStopStatusAction).toHaveBeenCalledWith("trip-1", "stop-1");
+    });
   });
 });

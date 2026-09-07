@@ -17,6 +17,7 @@ import {
   removeStopAction,
   updateStopNightsAction,
   reorderStopsAction,
+  cycleStopStatusAction,
   getStopsAction,
 } from "./stops/actions";
 
@@ -191,6 +192,49 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
     setReordering(false);
   }
 
+  async function handleCycleStatus(stopId: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setError(undefined);
+
+    const result = await cycleStopStatusAction(tripId, stopId);
+    if (!result.ok) {
+      setError(result.formError);
+      return;
+    }
+
+    // Update local state with new status
+    const updated = stops.map((s) =>
+      s.id === stopId ? { ...s, status: result.newStatus } : s,
+    );
+    setStops(updated);
+  }
+
+  function getStatusChipStyles(status: string) {
+    switch (status) {
+      case "thinking":
+        return "bg-surface-secondary text-text-muted";
+      case "urgent":
+        return "bg-alert/20 text-alert";
+      case "booked":
+        return "bg-success/20 text-success";
+      default:
+        return "bg-surface-secondary text-text-muted";
+    }
+  }
+
+  function getStatusLabel(status: string) {
+    switch (status) {
+      case "thinking":
+        return "Lo estamos pensando";
+      case "urgent":
+        return "Urgente";
+      case "booked":
+        return "Confirmado";
+      default:
+        return status;
+    }
+  }
+
   const totalNights = stops.reduce((sum, s) => sum + s.nights, 0);
   const totalKm = calculateTotalDistance(stops);
   const canAddMore = stops.length < MAX_STOPS_PER_TRIP;
@@ -334,16 +378,33 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
                       </div>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveStop(stop.id)}
-                    aria-label="Eliminar parada"
-                    className={["rounded-sm text-text-muted hover:text-alert", FOCUS_RING].join(
-                      " ",
-                    )}
-                  >
-                    <Icon name="trash-2" size={16} />
-                  </button>
+                  <div className="flex items-center gap-[var(--space-2)]">
+                    <button
+                      type="button"
+                      onClick={(e) => handleCycleStatus(stop.id, e)}
+                      aria-label={`Estado: ${getStatusLabel(stop.status)}`}
+                      title="Click para cambiar estado"
+                      className={[
+                        "inline-flex items-center px-[var(--space-2)] py-1 rounded-full",
+                        "text-[length:var(--text-xs)] font-medium transition-colors",
+                        "hover:opacity-80",
+                        FOCUS_RING,
+                        getStatusChipStyles(stop.status),
+                      ].join(" ")}
+                    >
+                      {getStatusLabel(stop.status)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveStop(stop.id)}
+                      aria-label="Eliminar parada"
+                      className={["rounded-sm text-text-muted hover:text-alert", FOCUS_RING].join(
+                        " ",
+                      )}
+                    >
+                      <Icon name="trash-2" size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Dates and nights */}
