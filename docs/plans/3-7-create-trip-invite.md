@@ -61,7 +61,7 @@ The data model — trips, memberships, invite reservations — has to exist befo
 
 **What this phase delivers**
 
-Prisma models for `Trip` (name, start/end date, currency), `TripMembership` (user, trip, role, per-trip color, per-trip display name), and `Invite` (trip, token, optional reserved email, resolved-into-membership once claimed), plus the server-side functions (create trip, generate invite link, reserve an email slot, look up invite by token, join trip) everything downstream calls into. No screens yet.
+Prisma models for `Trip` (name, start date only — no end date, see Scope — currency), `TripMembership` (user, trip, role, per-trip color, per-trip display name), and the invite tables (`TripInvite`: trip, token; `TripInviteReservation`: trip, email, resolved-into-membership once claimed), plus the server-side functions (create trip, generate invite link, reserve an email slot, look up invite by token, join trip) everything downstream calls into. No screens yet.
 
 **Acceptance criteria**
 

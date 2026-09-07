@@ -71,4 +71,17 @@ describe("SignupForm", () => {
     render(<SignupForm />);
     expect(screen.getByText("Mínimo 8 caracteres.")).toBeInTheDocument();
   });
+
+  it("carries the next value as a hidden field, so signupAction can thread it through to login", () => {
+    const { container } = render(<SignupForm next="/i/abc123" />);
+    expect(container.querySelector('input[name="next"]')).toHaveValue("/i/abc123");
+  });
+
+  it("threads next through to the login link", () => {
+    render(<SignupForm next="/i/abc123" />);
+    expect(screen.getByRole("link", { name: "Entrá" })).toHaveAttribute(
+      "href",
+      "/login?next=%2Fi%2Fabc123",
+    );
+  });
 });
