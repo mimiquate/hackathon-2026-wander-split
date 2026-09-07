@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: wondersplit
+      POSTGRES_PASSWORD: wondersplit
+      POSTGRES_DB: wondersplit_dev
+    ports:
+      # Host port 5433, not 5432, so this doesn't collide with a Postgres
+      # already running locally on the default port.
+      - "5433:5432"
+    volumes:
+      - wondersplit_pg_data:/var/lib/postgresql/data
+      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql
+
+volumes:
+  wondersplit_pg_data:
