@@ -13,6 +13,7 @@ vi.mock("./stops/actions", () => ({
   updateStopNightsAction: vi.fn(),
   reorderStopsAction: vi.fn(),
   cycleStopStatusAction: vi.fn(),
+  setLegTransportAction: vi.fn(),
   getStopsAction: vi.fn(),
 }));
 
@@ -537,6 +538,125 @@ describe("RutaPanel", () => {
     await waitFor(() => {
       expect(stopActions.cycleStopStatusAction).toHaveBeenCalledWith("trip-1", "stop-1");
     });
+  });
+
+  it("shows transport selector between consecutive stops", async () => {
+    const mockStops: TripStopData[] = [
+      {
+        id: "stop-1",
+        tripId: "trip-1",
+        position: 1,
+        city: "Buenos Aires",
+        country: "Argentina",
+        latitude: -34.6037,
+        longitude: -58.3816,
+        nights: 1,
+        status: "thinking",
+        transportMode: null,
+      },
+      {
+        id: "stop-2",
+        tripId: "trip-1",
+        position: 2,
+        city: "Mendoza",
+        country: "Argentina",
+        latitude: -32.8895,
+        longitude: -68.845,
+        nights: 1,
+        status: "thinking",
+        transportMode: null,
+      },
+    ];
+
+    vi.mocked(stopActions.getStopsAction).mockResolvedValueOnce(mockStops);
+
+    render(<RutaPanel tripId="trip-1" tripStartDate="2026-10-12" />);
+
+    // Wait for both cities to appear
+    await waitFor(() => {
+      expect(screen.getByText("Buenos Aires")).toBeInTheDocument();
+      expect(screen.getByText("Mendoza")).toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    // Should show transport selector label for the leg to Mendoza
+    expect(screen.getByText("Llegada a Mendoza:")).toBeInTheDocument();
+
+    // Should have a select element for transport mode
+    const selects = screen.getAllByRole("combobox");
+    expect(selects.length).toBeGreaterThan(0);
+  });
+
+  it("transport selector renders with correct label options", async () => {
+    const mockStops: TripStopData[] = [
+      {
+        id: "stop-1",
+        tripId: "trip-1",
+        position: 1,
+        city: "Buenos Aires",
+        country: "Argentina",
+        latitude: -34.6037,
+        longitude: -58.3816,
+        nights: 1,
+        status: "thinking",
+        transportMode: null,
+      },
+      {
+        id: "stop-2",
+        tripId: "trip-1",
+        position: 2,
+        city: "Mendoza",
+        country: "Argentina",
+        latitude: -32.8895,
+        longitude: -68.845,
+        nights: 1,
+        status: "thinking",
+        transportMode: null,
+      },
+    ];
+
+    vi.mocked(stopActions.getStopsAction).mockResolvedValueOnce(mockStops);
+
+    render(<RutaPanel tripId="trip-1" tripStartDate="2026-10-12" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Llegada a Mendoza:")).toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    // Verify all transport options are available
+    expect(screen.getByDisplayValue("Cómo llego...")).toBeInTheDocument();
+    expect(screen.getByText("✈️ Avión")).toBeInTheDocument();
+    expect(screen.getByText("🚂 Tren")).toBeInTheDocument();
+    expect(screen.getByText("🚗 Auto")).toBeInTheDocument();
+  });
+
+  it("does not show transport selector after last stop", async () => {
+    const mockStop: TripStopData = {
+      id: "stop-1",
+      tripId: "trip-1",
+      position: 1,
+      city: "Buenos Aires",
+      country: "Argentina",
+      latitude: -34.6037,
+      longitude: -58.3816,
+      nights: 1,
+      status: "thinking",
+      transportMode: null,
+    };
+
+    vi.mocked(stopActions.getStopsAction).mockResolvedValueOnce([mockStop]);
+
+    render(<RutaPanel tripId="trip-1" tripStartDate="2026-10-12" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Buenos Aires")).toBeInTheDocument();
+    });
+
+    // Should NOT show any "Llegada a" text since there's only one stop
+    expect(screen.queryByText(/Llegada a/)).not.toBeInTheDocument();
+
+    // Should NOT have any select elements for transport
+    const selects = screen.queryAllByRole("combobox");
+    expect(selects.length).toBe(0);
   });
 
   it("renders the route map once there's at least one stop", async () => {
