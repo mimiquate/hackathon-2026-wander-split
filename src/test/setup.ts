@@ -28,3 +28,17 @@ if (typeof globalThis.ResizeObserver === "undefined") {
 globalThis.fetch = vi.fn(() =>
   Promise.reject(new Error("network access is disabled in Vitest")),
 ) as unknown as typeof fetch;
+
+// jsdom parses <dialog> but has never implemented its imperative
+// showModal()/close() (see Dialog.tsx) — toggle the `open` attribute
+// directly instead, and fire the same `close` event the real method does,
+// so components that key their own state off it still work in tests.
+if (typeof HTMLDialogElement !== "undefined" && !HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    this.removeAttribute("open");
+    this.dispatchEvent(new Event("close"));
+  };
+}

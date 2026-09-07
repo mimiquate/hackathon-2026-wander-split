@@ -5,13 +5,10 @@ import { AvatarGroup } from "@/components/trip/AvatarGroup";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { findTripByInviteToken } from "@/lib/trips/invite";
 import { findTripMembership } from "@/lib/trips/membership";
+import { crewCountLabel } from "@/lib/trips/format";
 import { JoinForm } from "./JoinForm";
 
 export const metadata: Metadata = { title: "Entrá al viaje — wonderSplit" };
-
-function crewCountLabel(count: number) {
-  return count === 1 ? "1 persona ya está adentro" : `${count} personas ya están adentro`;
-}
 
 export default async function JoinTripPage({
   params,
