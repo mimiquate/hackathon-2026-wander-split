@@ -70,6 +70,49 @@ export async function findTripByInviteToken(token: string): Promise<TripByInvite
   };
 }
 
+export interface PendingCrewReservation {
+  reservationId: string;
+  email: string;
+}
+
+export interface TripInvitePanel {
+  tripId: string;
+  name: string;
+  inviteToken: string;
+  members: TripCrewMember[]; // joined, oldest first
+  pendingReservations: PendingCrewReservation[]; // unclaimed, oldest first
+}
+
+/**
+ * Everything the invite panel (Phase 3) and the "Compartir" dialog
+ * (Phase 5) need to render: the link, the crew grid's joined members, and
+ * its still-pending reservations. Null when the trip (or its invite row,
+ * which createTrip always creates alongside it) doesn't exist.
+ */
+export async function getTripInvitePanel(tripId: string): Promise<TripInvitePanel | null> {
+  const trip = await prisma.trip.findUnique({
+    where: { id: tripId },
+    include: {
+      invite: true,
+      memberships: { orderBy: { createdAt: "asc" } },
+      reservations: { where: { claimedAt: null }, orderBy: { createdAt: "asc" } },
+    },
+  });
+
+  if (!trip || !trip.invite) return null;
+
+  return {
+    tripId: trip.id,
+    name: trip.name,
+    inviteToken: trip.invite.token,
+    members: trip.memberships.map(toCrewMember),
+    pendingReservations: trip.reservations.map((reservation) => ({
+      reservationId: reservation.id,
+      email: reservation.email,
+    })),
+  };
+}
+
 export type ReserveInviteEmailResult =
   | { ok: true; reservationId: string; email: string; alreadyReserved: boolean }
   | { ok: false; fieldErrors?: { email?: string }; formError?: string };
