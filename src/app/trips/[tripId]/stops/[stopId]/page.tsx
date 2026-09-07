@@ -67,7 +67,7 @@ export default async function StopPage({
         position={range.position}
         totalStops={range.totalStops}
         initialPlaces={places}
-        bookings={bookings}
+        initialBookings={bookings}
         tripMembers={tripMembers}
       />
     </div>

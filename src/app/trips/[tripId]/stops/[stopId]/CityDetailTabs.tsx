@@ -27,15 +27,14 @@ export interface CityDetailTabsProps {
   position: number;
   totalStops: number;
   initialPlaces: TripPlaceData[];
-  bookings: BookingDetail[];
+  initialBookings: BookingDetail[];
   tripMembers: TripMemberSummary[];
 }
 
 /**
  * Owns which of the 4 tabs is showing. Plan and Reservas are both real now
- * (#10, #12/#13); each owns its own state below this — Plan's place list
- * still needs to live here too, though, since the "Plan · N" count in the
- * tab strip has to reflect adds/removes without a reload.
+ * (#10, #12/#13) and both need their list lifted here so the "Plan · N" /
+ * "Reservas · N" tab counts stay in sync with adds/edits without a reload.
  */
 export function CityDetailTabs({
   tripId,
@@ -47,11 +46,12 @@ export function CityDetailTabs({
   position,
   totalStops,
   initialPlaces,
-  bookings,
+  initialBookings,
   tripMembers,
 }: CityDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<CityDetailTab>("plan");
   const [places, setPlaces] = useState(initialPlaces);
+  const [bookings, setBookings] = useState(initialBookings);
 
   return (
     <div className="flex flex-col gap-[var(--space-5)]">
@@ -108,7 +108,13 @@ export function CityDetailTabs({
           onPlacesChange={setPlaces}
         />
       ) : (
-        <ReservasTabContent bookings={bookings} tripMembers={tripMembers} />
+        <ReservasTabContent
+          tripId={tripId}
+          stopId={stopId}
+          bookings={bookings}
+          onBookingsChange={setBookings}
+          tripMembers={tripMembers}
+        />
       )}
     </div>
   );

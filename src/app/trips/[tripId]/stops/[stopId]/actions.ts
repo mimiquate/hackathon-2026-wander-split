@@ -6,6 +6,12 @@ import { findTripMembership } from "@/lib/trips/membership";
 import { getStop, type TripStopData } from "@/lib/trips/stops";
 import { addPlace, removePlace, type AddPlaceResult, type RemovePlaceResult } from "@/lib/trips/places";
 import { searchPlacesInCity, type CityPlaceSearchResult } from "@/lib/geo/mapbox-places";
+import {
+  createBooking,
+  updateBooking,
+  type CreateBookingResult,
+  type UpdateBookingResult,
+} from "@/lib/trips/bookings";
 
 async function assertStopAccess(tripId: string, stopId: string): Promise<TripStopData | null> {
   const user = await getCurrentUser();
@@ -67,6 +73,48 @@ export async function removePlaceAction(
   }
 
   const result = await removePlace(stopId, placeId);
+  if (result.ok) {
+    revalidatePath(`/trips/${tripId}/stops/${stopId}`);
+  }
+  return result;
+}
+
+export interface BookingActionInput {
+  label: string;
+  reservedById: string;
+  paidById: string;
+  userIds: string[];
+}
+
+export async function createBookingAction(
+  tripId: string,
+  stopId: string,
+  input: BookingActionInput,
+): Promise<CreateBookingResult> {
+  const stop = await assertStopAccess(tripId, stopId);
+  if (!stop) {
+    return { ok: false, formError: "No tenés acceso a esta parada." };
+  }
+
+  const result = await createBooking({ stopId, ...input });
+  if (result.ok) {
+    revalidatePath(`/trips/${tripId}/stops/${stopId}`);
+  }
+  return result;
+}
+
+export async function updateBookingAction(
+  tripId: string,
+  stopId: string,
+  bookingId: string,
+  input: BookingActionInput,
+): Promise<UpdateBookingResult> {
+  const stop = await assertStopAccess(tripId, stopId);
+  if (!stop) {
+    return { ok: false, formError: "No tenés acceso a esta parada." };
+  }
+
+  const result = await updateBooking({ stopId, bookingId, ...input });
   if (result.ok) {
     revalidatePath(`/trips/${tripId}/stops/${stopId}`);
   }
