@@ -9,12 +9,21 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "postinstall": "prisma generate",
+    "db:migrate": "node --env-file=.env.local node_modules/.bin/prisma migrate dev",
+    "db:migrate:test": "node --env-file=.env.test node_modules/.bin/prisma migrate deploy",
+    "db:seed": "node --env-file=.env.local --import tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.3",
+    "@node-rs/argon2": "^2.2.0",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
     "d3-geo": "^3.1.1",
     "d3-selection": "^3.0.0",
     "next": "16.3.4",
+    "next-auth": "5.0.0-beta.32",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "topojson-client": "^3.1.0"
@@ -36,7 +45,9 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "jsdom": "^30.0.1",
+    "prisma": "^7.10.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5",
     "vitest": "^5.0.0"
   }
