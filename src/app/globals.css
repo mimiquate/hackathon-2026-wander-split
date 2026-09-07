@@ -51,6 +51,11 @@
   --spacing-control-h-md: var(--control-h-md);
   --spacing-control-h-lg: var(--control-h-lg);
   --spacing-tap-min: var(--tap-min);
+
+  /* The design's own "~900px" mobile threshold (nav collapse, hero/cómo
+     funciona grids) — overrides Tailwind's default 768px so every section
+     collapses at the same point instead of several arbitrary ones. */
+  --breakpoint-md: 900px;
 }
 
 body {

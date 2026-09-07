@@ -26,7 +26,7 @@ export function LedgerRow({
     <div
       onClick={onClick}
       className={[
-        "flex items-center gap-[var(--space-4)] rounded-md border border-border px-[var(--space-5)] py-[var(--space-4)] font-body text-[length:var(--text-sm)] text-text",
+        "flex flex-col gap-[var(--space-4)] rounded-md border border-border px-[var(--space-5)] py-[var(--space-4)] font-body text-[length:var(--text-sm)] text-text md:flex-row md:items-center",
         tone === "sunken" ? "bg-surface-2" : "bg-surface",
         onClick ? "cursor-pointer" : "cursor-default",
         className,
@@ -46,7 +46,7 @@ export function LedgerRow({
       {people && people.length ? (
         <AvatarGroup people={people} size="sm" max={3} />
       ) : null}
-      <div className="text-right font-mono tabular-nums">
+      <div className="text-left font-mono tabular-nums md:text-right">
         <div>{amount}</div>
         {converted ? (
           <div className="text-[length:var(--text-xs)] text-text-muted">

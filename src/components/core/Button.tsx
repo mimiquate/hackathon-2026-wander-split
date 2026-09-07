@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { FOCUS_RING } from "@/lib/styles";
 import { Icon } from "./Icon";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "alert";
@@ -33,12 +34,6 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   alert:
     "bg-alert text-text-on-alert hover:bg-[var(--ocre-500)] active:bg-[color-mix(in_oklab,var(--ocre-500)_85%,black)]",
 };
-
-// `outline-none` clears Tailwind's internal --tw-outline-style variable to
-// "none", so it has to be set back to "solid" explicitly on focus-visible —
-// outline-width/color alone don't bring the outline back.
-const FOCUS_RING =
-  "outline-none focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]";
 
 export function Button({
   children,
