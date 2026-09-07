@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
 import { createDatabaseSession } from "@/lib/auth/session";
 import { MAX_LOGIN_FAILURES, countRecentFailures, recordLoginAttempt } from "@/lib/auth/rate-limit";
+import { normalizeEmail } from "@/lib/email-validation";
 
 const RATE_LIMIT_MESSAGE = "Demasiados intentos. Probá de nuevo en 5 minutos.";
 
@@ -21,7 +22,7 @@ export type LoginResult =
   | { ok: false; fieldErrors?: { password?: string }; formError?: string; rateLimited?: boolean };
 
 export async function loginCore({ email, password }: LoginInput): Promise<LoginResult> {
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
   const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
   if (!user) {
