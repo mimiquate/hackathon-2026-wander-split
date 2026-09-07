@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { Button } from "@/components/core/Button";
 import { Card } from "@/components/core/Card";
 import { Icon } from "@/components/core/Icon";
@@ -403,12 +404,15 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
                     <div className="text-text-muted pt-1 cursor-grab active:cursor-grabbing">
                       <Icon name="grip-vertical" size={16} />
                     </div>
-                    <div className="flex-1">
+                    <Link
+                      href={`/trips/${tripId}/stops/${stop.id}`}
+                      className={["flex-1 rounded-sm hover:underline", FOCUS_RING].join(" ")}
+                    >
                       <div className="font-medium text-text">{stop.city}</div>
                       <div className="text-[length:var(--text-xs)] text-text-muted">
                         {stop.country}
                       </div>
-                    </div>
+                    </Link>
                   </div>
                   <div className="flex items-center gap-[var(--space-2)]">
                     <button

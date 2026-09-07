@@ -47,3 +47,10 @@ export type PlaceKind = (typeof PLACE_KINDS)[number];
 export function isPlaceKind(value: string): value is PlaceKind {
   return (PLACE_KINDS as readonly string[]).includes(value);
 }
+
+export const PLACE_KIND_LABELS: Record<PlaceKind, string> = {
+  alojamiento: "Alojamiento",
+  plan: "Plan",
+  idea: "Idea",
+  transporte: "Transporte",
+};
