@@ -49,15 +49,15 @@ test.describe("mobile layout (~375px)", () => {
   }) => {
     await page.goto("/");
 
-    // "Tren Sevilla–Madrid" also appears as a Vouchers stop-card item, so
-    // scope to the hero (the page's first section) to find the ledger row.
+    // "Depa en Triana" also appears as a Vouchers stop-card item, so scope
+    // to the hero (the page's first section) to find the ledger row.
     const heroSection = page.locator("section").first();
     const row = heroSection
-      .getByText("Tren Sevilla–Madrid")
+      .getByText("Depa en Triana")
       .locator("xpath=..")
       .locator("xpath=..");
-    const label = row.getByText("Tren Sevilla–Madrid");
-    const amount = row.getByText("€62,00");
+    const label = row.getByText("Depa en Triana");
+    const amount = row.getByText("€620,00");
     const labelBox = await label.boundingBox();
     const amountBox = await amount.boundingBox();
     expect(amountBox!.y).toBeGreaterThan(labelBox!.y + labelBox!.height - 5);
@@ -88,15 +88,15 @@ test.describe("desktop layout (~1200px)", () => {
   test("a ledger row's label and amount sit side by side", async ({ page }) => {
     await page.goto("/");
 
-    // "Tren Sevilla–Madrid" also appears as a Vouchers stop-card item, so
-    // scope to the hero (the page's first section) to find the ledger row.
+    // "Depa en Triana" also appears as a Vouchers stop-card item, so scope
+    // to the hero (the page's first section) to find the ledger row.
     const heroSection = page.locator("section").first();
     const row = heroSection
-      .getByText("Tren Sevilla–Madrid")
+      .getByText("Depa en Triana")
       .locator("xpath=..")
       .locator("xpath=..");
-    const label = row.getByText("Tren Sevilla–Madrid");
-    const amount = row.getByText("€62,00");
+    const label = row.getByText("Depa en Triana");
+    const amount = row.getByText("€620,00");
     const labelBox = await label.boundingBox();
     const amountBox = await amount.boundingBox();
     expect(Math.abs(amountBox!.y - labelBox!.y)).toBeLessThan(10);
