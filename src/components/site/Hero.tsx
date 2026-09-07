@@ -19,10 +19,10 @@ export function Hero() {
           transfiere a quién, con la menor cantidad de movimientos posible.
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-[10px]">
-          <Button size="lg" iconRight="arrow-right">
+          <Button size="lg" iconRight="arrow-right" href="/signup">
             Armar un viaje
           </Button>
-          <Button size="lg" variant="secondary">
+          <Button size="lg" variant="secondary" href="#como-funciona">
             Ver cómo funciona
           </Button>
         </div>

@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import Link from "next/link";
 import { FOCUS_RING } from "@/lib/styles";
 import { Icon } from "./Icon";
 
@@ -13,6 +14,8 @@ export interface ButtonProps
   iconLeft?: string;
   iconRight?: string;
   fullWidth?: boolean;
+  /** Renders as a navigable link instead of a `<button>` when set. */
+  href?: string;
 }
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -44,29 +47,41 @@ export function Button({
   fullWidth = false,
   disabled = false,
   className,
+  href,
   ...rest
 }: ButtonProps) {
   const iconSize = size === "lg" ? 20 : 16;
 
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      className={[
-        "inline-flex cursor-pointer items-center justify-center gap-[var(--space-3)] whitespace-nowrap rounded-pill font-body font-bold transition-[background,opacity,transform] duration-[var(--dur-fast)] ease-[var(--ease-out)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-[0.45]",
-        fullWidth ? "w-full" : "w-auto",
-        SIZE_CLASSES[size],
-        VARIANT_CLASSES[variant],
-        FOCUS_RING,
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-      {...rest}
-    >
+  const classes = [
+    "inline-flex cursor-pointer items-center justify-center gap-[var(--space-3)] whitespace-nowrap rounded-pill font-body font-bold transition-[background,opacity,transform] duration-[var(--dur-fast)] ease-[var(--ease-out)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-[0.45]",
+    fullWidth ? "w-full" : "w-auto",
+    SIZE_CLASSES[size],
+    VARIANT_CLASSES[variant],
+    FOCUS_RING,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const content = (
+    <>
       {iconLeft ? <Icon name={iconLeft} size={iconSize} /> : null}
       {children}
       {iconRight ? <Icon name={iconRight} size={iconSize} /> : null}
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={classes}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" disabled={disabled} className={classes} {...rest}>
+      {content}
     </button>
   );
 }
