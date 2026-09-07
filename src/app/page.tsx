@@ -3,6 +3,7 @@ import {
   Gastos,
   Hero,
   HowItWorks,
+  RouteSection,
   SiteFooter,
   SiteNav,
   Vouchers,
@@ -13,6 +14,7 @@ export default function Home() {
     <>
       <SiteNav />
       <Hero />
+      <RouteSection />
       <HowItWorks />
       <Gastos />
       <Vouchers />
