@@ -8,6 +8,8 @@ describe("StatusChip", () => {
     ["urgent", "Faltan cosas"],
     ["booked", "¡Reservado!"],
     ["settled", "Saldado"],
+    ["planning", "Por armar"],
+    ["active", "En curso"],
   ] as const)("falls back to the default label for %s", (state, label) => {
     render(<StatusChip state={state} />);
     expect(screen.getByText(label)).toBeInTheDocument();

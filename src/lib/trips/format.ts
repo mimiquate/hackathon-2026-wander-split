@@ -3,3 +3,13 @@
 export function crewCountLabel(count: number): string {
   return count === 1 ? "1 persona ya está adentro" : `${count} personas ya están adentro`;
 }
+
+/** "1 viajero" / "N viajeros" — the trip card's compact traveler count. */
+export function travelerCountLabel(count: number): string {
+  return count === 1 ? "1 viajero" : `${count} viajeros`;
+}
+
+/** "1 viaje" / "N viajes" — the dashboard's aggregate eyebrow line. */
+export function tripCountLabel(count: number): string {
+  return count === 1 ? "1 viaje" : `${count} viajes`;
+}
