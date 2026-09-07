@@ -5,7 +5,7 @@ import { Card } from "@/components/core/Card";
 export interface AuthShellProps {
   eyebrow: string;
   title: string;
-  description: string;
+  description: ReactNode;
   children: ReactNode;
 }
 

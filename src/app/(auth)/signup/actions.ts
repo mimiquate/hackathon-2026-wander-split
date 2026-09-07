@@ -22,5 +22,5 @@ export async function signupAction(
     return { fieldErrors: result.fieldErrors, formError: result.formError };
   }
 
-  redirect("/login?created=1");
+  redirect(`/verify?email=${encodeURIComponent(result.email)}`);
 }

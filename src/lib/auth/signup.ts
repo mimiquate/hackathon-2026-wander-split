@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
+import { createAndSendVerificationCode } from "@/lib/auth/verification";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -12,7 +13,7 @@ export interface SignupInput {
 }
 
 export type SignupResult =
-  | { ok: true; userId: string }
+  | { ok: true; userId: string; email: string }
   | {
       ok: false;
       fieldErrors?: { email?: string; password?: string };
@@ -42,7 +43,8 @@ export async function signupCore({
     const user = await prisma.user.create({
       data: { email: normalizedEmail, passwordHash: await hashPassword(password) },
     });
-    return { ok: true, userId: user.id };
+    await createAndSendVerificationCode({ userId: user.id, email: user.email });
+    return { ok: true, userId: user.id, email: user.email };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return {

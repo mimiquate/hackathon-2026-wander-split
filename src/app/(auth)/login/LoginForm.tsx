@@ -8,16 +8,11 @@ import { loginAction, type LoginFormState } from "./actions";
 
 const INITIAL_STATE: LoginFormState = {};
 
-export function LoginForm({ justCreated }: { justCreated: boolean }) {
+export function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, INITIAL_STATE);
 
   return (
     <form action={formAction} className="flex flex-col gap-[var(--space-6)]">
-      {justCreated ? (
-        <p className="m-0 text-[length:var(--text-sm)] text-text-muted">
-          Cuenta creada. Iniciá sesión para continuar.
-        </p>
-      ) : null}
       {state.rateLimited ? (
         <AlertBanner icon="shield-alert">{state.formError}</AlertBanner>
       ) : null}

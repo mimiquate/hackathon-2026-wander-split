@@ -1,11 +1,16 @@
 // @vitest-environment node
 import { randomUUID } from "node:crypto";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
+import { sentEmails, resetSentEmails } from "@/lib/email";
 import { signupCore } from "@/lib/auth/signup";
 
 describe("signupCore", () => {
   const createdUserIds: string[] = [];
+
+  beforeEach(() => {
+    resetSentEmails();
+  });
 
   afterEach(async () => {
     if (createdUserIds.length) {
@@ -14,7 +19,7 @@ describe("signupCore", () => {
     }
   });
 
-  it("creates a user with a hashed password", async () => {
+  it("creates a user with a hashed password and sends a verification code", async () => {
     const email = `test-${randomUUID()}@example.com`;
     const result = await signupCore({ email, password: "a-real-password", termsAccepted: true });
 
@@ -25,6 +30,11 @@ describe("signupCore", () => {
     const user = await prisma.user.findUniqueOrThrow({ where: { id: result.userId } });
     expect(user.email).toEqual(email.toLowerCase());
     expect(user.passwordHash).not.toEqual("a-real-password");
+
+    expect(result.email).toEqual(email.toLowerCase());
+    const sent = sentEmails.find((message) => message.to === email.toLowerCase());
+    expect(sent).toBeDefined();
+    expect(sent!.code).toMatch(/^\d{6}$/);
   });
 
   it("rejects an invalid-looking email", async () => {

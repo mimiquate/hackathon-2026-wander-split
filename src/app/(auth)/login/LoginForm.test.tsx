@@ -18,7 +18,7 @@ describe("LoginForm", () => {
     // `loginAction` mock permanently "in flight" for every later test.
     let resolveAction!: (value: object) => void;
     loginAction.mockReturnValue(new Promise((resolve) => (resolveAction = resolve)));
-    render(<LoginForm justCreated={false} />);
+    render(<LoginForm />);
 
     fillAndSubmit("juan@correo.com", "hunter2");
 
@@ -33,7 +33,7 @@ describe("LoginForm", () => {
     loginAction.mockResolvedValue({
       fieldErrors: { password: "Contraseña incorrecta. Te quedan 3 intentos." },
     });
-    render(<LoginForm justCreated={false} />);
+    render(<LoginForm />);
 
     fillAndSubmit("juan@correo.com", "wrong");
 
@@ -47,7 +47,7 @@ describe("LoginForm", () => {
       formError: "Demasiados intentos. Probá de nuevo en 5 minutos.",
       rateLimited: true,
     });
-    render(<LoginForm justCreated={false} />);
+    render(<LoginForm />);
 
     fillAndSubmit("juan@correo.com", "wrong");
 
@@ -57,10 +57,5 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText("Correo")).toBeDisabled();
     expect(screen.getByLabelText("Contraseña")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Entrar" })).toBeDisabled();
-  });
-
-  it("shows the post-signup confirmation line when justCreated is true", () => {
-    render(<LoginForm justCreated={true} />);
-    expect(screen.getByText("Cuenta creada. Iniciá sesión para continuar.")).toBeInTheDocument();
   });
 });
