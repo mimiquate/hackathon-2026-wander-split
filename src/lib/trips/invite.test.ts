@@ -3,7 +3,8 @@ import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { createTrip } from "@/lib/trips/create";
-import { findTripByInviteToken, reserveInviteEmail } from "@/lib/trips/invite";
+import { findTripByInviteToken, getTripInvitePanel, reserveInviteEmail } from "@/lib/trips/invite";
+import { joinTrip } from "@/lib/trips/join";
 
 describe("trip invite", () => {
   const createdUserIds: string[] = [];
@@ -20,9 +21,10 @@ describe("trip invite", () => {
     }
   });
 
-  async function createUser() {
-    const email = `test-${randomUUID()}@example.com`;
-    const user = await prisma.user.create({ data: { email, passwordHash: "irrelevant" } });
+  async function createUser(email?: string) {
+    const user = await prisma.user.create({
+      data: { email: email ?? `test-${randomUUID()}@example.com`, passwordHash: "irrelevant" },
+    });
     createdUserIds.push(user.id);
     return user;
   }
@@ -129,6 +131,49 @@ describe("trip invite", () => {
       expect(resultB.ok).toBe(true);
       if (!resultA.ok || !resultB.ok) throw new Error("expected ok results");
       expect(resultA.reservationId).not.toEqual(resultB.reservationId);
+    });
+  });
+
+  describe("getTripInvitePanel", () => {
+    it("returns the trip's name, invite token, joined members, and pending reservations", async () => {
+      const admin = await createUser();
+      const trip = await createTestTrip(admin.id);
+      const pendingEmail = `guest-${randomUUID()}@example.com`;
+      await reserveInviteEmail({ tripId: trip.tripId, email: pendingEmail });
+
+      const panel = await getTripInvitePanel(trip.tripId);
+
+      expect(panel?.tripId).toEqual(trip.tripId);
+      expect(panel?.inviteToken).toEqual(trip.inviteToken);
+      expect(panel?.members).toHaveLength(1);
+      expect(panel?.members[0]).toMatchObject({ userId: admin.id, role: "admin" });
+      expect(panel?.pendingReservations).toEqual([
+        { reservationId: expect.any(String), email: pendingEmail },
+      ]);
+    });
+
+    it("omits a claimed reservation from pendingReservations", async () => {
+      const admin = await createUser();
+      const trip = await createTestTrip(admin.id);
+      const joinerEmail = `guest-${randomUUID()}@example.com`;
+      const joiner = await createUser(joinerEmail);
+      await reserveInviteEmail({ tripId: trip.tripId, email: joinerEmail });
+
+      const joinResult = await joinTrip({
+        token: trip.inviteToken,
+        userId: joiner.id,
+        displayName: "Juan",
+        colorIndex: 0,
+      });
+      expect(joinResult.ok).toBe(true);
+
+      const panel = await getTripInvitePanel(trip.tripId);
+      expect(panel?.pendingReservations).toEqual([]);
+      expect(panel?.members).toHaveLength(2);
+    });
+
+    it("returns null for an unknown trip id", async () => {
+      expect(await getTripInvitePanel(`unknown-${randomUUID()}`)).toBeNull();
     });
   });
 });

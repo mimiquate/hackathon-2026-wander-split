@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Card } from "@/components/core/Card";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { findTripMembership } from "@/lib/trips/membership";
-import { prisma } from "@/lib/prisma";
+import { getTripInvitePanel } from "@/lib/trips/invite";
+import { InvitePanel } from "./InvitePanel";
 
-export const metadata: Metadata = { title: "Tu viaje — wonderSplit" };
+export const metadata: Metadata = { title: "Invitá a tu grupo — wonderSplit" };
 
-// Placeholder landing spot for a freshly created trip — just enough that
-// Phase 2's create-trip redirect isn't a dead end. Phase 3 replaces this
-// with the real invite panel (copyable link, add-by-email, crew grid).
+// Same host-detection the secure-cookie check in cookies.ts uses: Vercel
+// production is always https, local dev is always http, so NODE_ENV is a
+// safe stand-in for reading x-forwarded-proto.
+async function buildInviteUrl(token: string) {
+  const headerList = await headers();
+  const host = headerList.get("host");
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  return `${protocol}://${host}/i/${token}`;
+}
+
 export default async function TripPage({
   params,
 }: {
@@ -22,21 +31,28 @@ export default async function TripPage({
   const membership = await findTripMembership(tripId, user.id);
   if (!membership) notFound();
 
-  const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { name: true } });
-  if (!trip) notFound();
+  const panel = await getTripInvitePanel(tripId);
+  if (!panel) notFound();
+
+  const inviteUrl = await buildInviteUrl(panel.inviteToken);
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-[420px] flex-col justify-center gap-[var(--space-7)] px-[var(--gutter)] py-[var(--space-9)]">
-      <Card padding="lg" className="flex flex-col gap-[var(--space-4)]">
-        <span className="font-mono text-[length:var(--text-eyebrow)] tracking-[var(--tracking-eyebrow)] uppercase text-text-muted">
-          Viaje creado
-        </span>
-        <h1 className="m-0 text-balance font-display text-[length:var(--text-lg)] font-bold tracking-[-0.01em]">
-          {trip.name}
-        </h1>
-        <p className="m-0 text-[length:var(--text-sm)] leading-normal text-text-muted">
-          Invitá a tu grupo — el panel de invitación llega en la próxima fase.
-        </p>
+    <div className="mx-auto flex min-h-svh max-w-[480px] flex-col justify-center gap-[var(--space-7)] px-[var(--gutter)] py-[var(--space-9)]">
+      <Card padding="lg" className="flex flex-col gap-[var(--space-6)]">
+        <div className="flex flex-col gap-[var(--space-2)]">
+          <span className="font-mono text-[length:var(--text-eyebrow)] tracking-[var(--tracking-eyebrow)] uppercase text-text-muted">
+            {panel.name}
+          </span>
+          <h1 className="m-0 text-balance font-display text-[length:var(--text-lg)] font-bold tracking-[-0.01em]">
+            Invitá a tu grupo
+          </h1>
+        </div>
+        <InvitePanel
+          tripId={tripId}
+          inviteUrl={inviteUrl}
+          members={panel.members}
+          initialPendingReservations={panel.pendingReservations}
+        />
       </Card>
     </div>
   );
