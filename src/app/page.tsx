@@ -1,4 +1,12 @@
-import { FinalCta, Hero, HowItWorks, SiteFooter, SiteNav } from "@/components/site";
+import {
+  FinalCta,
+  Gastos,
+  Hero,
+  HowItWorks,
+  SiteFooter,
+  SiteNav,
+  Vouchers,
+} from "@/components/site";
 
 export default function Home() {
   return (
@@ -6,6 +14,8 @@ export default function Home() {
       <SiteNav />
       <Hero />
       <HowItWorks />
+      <Gastos />
+      <Vouchers />
       <FinalCta />
       <SiteFooter />
     </>

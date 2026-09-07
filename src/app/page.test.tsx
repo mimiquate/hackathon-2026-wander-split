@@ -34,6 +34,37 @@ describe("Home page", () => {
     expect(screen.getByText("La cuenta la hacemos nosotros")).toBeInTheDocument();
   });
 
+  it("has a #gastos section with the total and 3 settle rows", () => {
+    render(<Home />);
+
+    const section = document.getElementById("gastos");
+    expect(section).toBeInTheDocument();
+    expect(screen.getByText("US$834,10")).toBeInTheDocument();
+    expect(section?.textContent).toContain("Juan le transfiere");
+    expect(section?.textContent).toContain("US$50");
+    expect(section?.textContent).toContain("a María");
+  });
+
+  it("has a #vouchers section with the 3 stop cards", () => {
+    render(<Home />);
+
+    const section = document.getElementById("vouchers");
+    expect(section).toBeInTheDocument();
+    expect(screen.getByText("Lisboa")).toBeInTheDocument();
+    expect(screen.getByText("Oporto")).toBeInTheDocument();
+    expect(screen.getByText("Sevilla")).toBeInTheDocument();
+  });
+
+  it("shows the same avatar color for the same person everywhere they appear", () => {
+    render(<Home />);
+
+    const marias = screen.getAllByTitle("María");
+    expect(marias.length).toBeGreaterThan(1);
+    for (const avatar of marias) {
+      expect(avatar.className).toContain("bg-avatar-4");
+    }
+  });
+
   it("has a #precios section with exactly one button", () => {
     render(<Home />);
 
