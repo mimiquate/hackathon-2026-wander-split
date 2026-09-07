@@ -7,6 +7,7 @@ export const metadata: Metadata = { title: "Entrar — wonderSplit" };
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const params = await searchParams;
   const justCreated = params.created === "1";
+  const next = typeof params.next === "string" ? params.next : "";
 
   return (
     <AuthShell
@@ -14,7 +15,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       title="Entrá a wonderSplit"
       description="Seguí armando la ruta donde la dejaste."
     >
-      <LoginForm justCreated={justCreated} />
+      <LoginForm justCreated={justCreated} next={next} />
     </AuthShell>
   );
 }

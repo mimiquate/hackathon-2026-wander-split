@@ -63,4 +63,17 @@ describe("LoginForm", () => {
     render(<LoginForm justCreated={true} />);
     expect(screen.getByText("Cuenta creada. Iniciá sesión para continuar.")).toBeInTheDocument();
   });
+
+  it("carries the next value as a hidden field, so loginAction can redirect back after success", () => {
+    const { container } = render(<LoginForm justCreated={false} next="/i/abc123" />);
+    expect(container.querySelector('input[name="next"]')).toHaveValue("/i/abc123");
+  });
+
+  it("threads next through to the signup link", () => {
+    render(<LoginForm justCreated={false} next="/i/abc123" />);
+    expect(screen.getByRole("link", { name: "Creá tu cuenta" })).toHaveAttribute(
+      "href",
+      "/signup?next=%2Fi%2Fabc123",
+    );
+  });
 });

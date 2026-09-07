@@ -8,11 +8,13 @@ import { loginAction, type LoginFormState } from "./actions";
 
 const INITIAL_STATE: LoginFormState = {};
 
-export function LoginForm({ justCreated }: { justCreated: boolean }) {
+export function LoginForm({ justCreated, next = "" }: { justCreated: boolean; next?: string }) {
   const [state, formAction, pending] = useActionState(loginAction, INITIAL_STATE);
+  const signupHref = next ? `/signup?next=${encodeURIComponent(next)}` : "/signup";
 
   return (
     <form action={formAction} className="flex flex-col gap-[var(--space-6)]">
+      <input type="hidden" name="next" value={next} />
       {justCreated ? (
         <p className="m-0 text-[length:var(--text-sm)] text-text-muted">
           Cuenta creada. Iniciá sesión para continuar.
@@ -53,7 +55,7 @@ export function LoginForm({ justCreated }: { justCreated: boolean }) {
       </Button>
       <p className="m-0 text-center text-[length:var(--text-sm)] text-text-muted">
         ¿Primera vez?{" "}
-        <Link href="/signup" className="font-bold text-primary">
+        <Link href={signupHref} className="font-bold text-primary">
           Creá tu cuenta
         </Link>
       </p>

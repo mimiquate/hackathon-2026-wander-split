@@ -8,12 +8,14 @@ import { signupAction, type SignupFormState } from "./actions";
 
 const INITIAL_STATE: SignupFormState = {};
 
-export function SignupForm() {
+export function SignupForm({ next = "" }: { next?: string }) {
   const [state, formAction, pending] = useActionState(signupAction, INITIAL_STATE);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const loginHref = next ? `/login?next=${encodeURIComponent(next)}` : "/login";
 
   return (
     <form action={formAction} className="flex flex-col gap-[var(--space-6)]">
+      <input type="hidden" name="next" value={next} />
       <Input
         label="Correo"
         name="email"
@@ -59,7 +61,7 @@ export function SignupForm() {
       </Button>
       <p className="m-0 text-center text-[length:var(--text-sm)] text-text-muted">
         ¿Ya tenés cuenta?{" "}
-        <Link href="/login" className="font-bold text-primary">
+        <Link href={loginHref} className="font-bold text-primary">
           Entrá
         </Link>
       </p>
