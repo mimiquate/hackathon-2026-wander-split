@@ -5,7 +5,12 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { authConfig } from "@/lib/auth/config";
-import { createDatabaseSession, deleteDatabaseSession, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
+import {
+  createDatabaseSession,
+  deleteDatabaseSession,
+  resolveAuthRedirectPath,
+  SESSION_MAX_AGE_SECONDS,
+} from "@/lib/auth/session";
 
 async function readSession(sessionToken: string) {
   const request = new Request("http://localhost/api/auth/session", {
@@ -58,5 +63,23 @@ describe("database sessions", () => {
 
   it("returns null for a token that was never issued", async () => {
     expect(await readSession("not-a-real-token")).toBeNull();
+  });
+
+  describe("resolveAuthRedirectPath", () => {
+    it("returns /firstrun for a user with firstRunCompletedAt unset", async () => {
+      const { sessionToken } = await createDatabaseSession(userId);
+      const path = await resolveAuthRedirectPath(sessionToken);
+      expect(path).toEqual("/firstrun");
+    });
+
+    it("returns / for a user with firstRunCompletedAt set", async () => {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { firstRunCompletedAt: new Date() },
+      });
+      const { sessionToken } = await createDatabaseSession(userId);
+      const path = await resolveAuthRedirectPath(sessionToken);
+      expect(path).toEqual("/");
+    });
   });
 });

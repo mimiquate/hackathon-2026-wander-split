@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { loginCore } from "@/lib/auth/login";
 import { setSessionCookie } from "@/lib/auth/cookies";
+import { resolveAuthRedirectPath } from "@/lib/auth/session";
 
 export interface LoginFormState {
   fieldErrors?: { password?: string };
@@ -28,5 +29,5 @@ export async function loginAction(
   }
 
   await setSessionCookie(result.sessionToken);
-  redirect("/");
+  redirect(await resolveAuthRedirectPath(result.sessionToken));
 }

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { resetPassword } from "@/lib/auth/reset";
 import { setSessionCookie } from "@/lib/auth/cookies";
+import { resolveAuthRedirectPath } from "@/lib/auth/session";
 
 export interface ResetFormState {
   fieldErrors?: { password?: string; confirmPassword?: string };
@@ -24,5 +25,5 @@ export async function resetAction(
   }
 
   await setSessionCookie(result.sessionToken);
-  redirect("/");
+  redirect(await resolveAuthRedirectPath(result.sessionToken));
 }

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { verifyCode, resendVerificationCode } from "@/lib/auth/verification";
 import { setSessionCookie } from "@/lib/auth/cookies";
+import { resolveAuthRedirectPath } from "@/lib/auth/session";
 
 export interface VerifyFormState {
   formError?: string;
@@ -22,7 +23,7 @@ export async function verifyAction(
   }
 
   await setSessionCookie(result.sessionToken);
-  redirect("/");
+  redirect(await resolveAuthRedirectPath(result.sessionToken));
 }
 
 export interface ResendFormState {

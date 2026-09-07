@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import { getSessionCookie } from "@/lib/auth/cookies";
 
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // ~30 days
 
@@ -26,4 +27,24 @@ export async function deleteDatabaseSession(sessionToken: string) {
   }
 
   await adapter.deleteSession(sessionToken);
+}
+
+async function getUserBySessionToken(sessionToken: string) {
+  const session = await prisma.session.findUnique({
+    where: { sessionToken },
+    include: { user: true },
+  });
+  if (!session || session.expires <= new Date()) return null;
+  return session.user;
+}
+
+export async function getCurrentUser() {
+  const sessionToken = await getSessionCookie();
+  if (!sessionToken) return null;
+  return getUserBySessionToken(sessionToken);
+}
+
+export async function resolveAuthRedirectPath(sessionToken: string): Promise<"/" | "/firstrun"> {
+  const user = await getUserBySessionToken(sessionToken);
+  return user?.firstRunCompletedAt ? "/" : "/firstrun";
 }

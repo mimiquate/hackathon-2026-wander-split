@@ -17,3 +17,8 @@ export async function setSessionCookie(sessionToken: string) {
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
 }
+
+export async function getSessionCookie(): Promise<string | undefined> {
+  const store = await cookies();
+  return store.get(SESSION_COOKIE_NAME)?.value;
+}
