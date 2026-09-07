@@ -237,5 +237,10 @@ model VoucherFile {
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
+  // The client (after upload() resolves) and Blob's own onUploadCompleted
+  // webhook can both race to persist the same upload — this constraint is
+  // what makes addVoucherFile's upsert on (bookingId, url) safe instead of
+  // occasionally creating a duplicate row for one file.
+  @@unique([bookingId, url])
   @@index([bookingId])
 }

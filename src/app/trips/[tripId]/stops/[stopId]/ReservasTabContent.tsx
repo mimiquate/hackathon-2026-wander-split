@@ -7,7 +7,10 @@ import { AvatarGroup } from "@/components/trip/AvatarGroup";
 import { FOCUS_RING } from "@/lib/styles";
 import type { BookingDetail } from "@/lib/trips/bookings";
 import type { TripMemberSummary } from "@/lib/trips/membership";
+import type { VoucherFileData } from "@/lib/trips/vouchers";
+import { removeVoucherFileAction } from "./actions";
 import { SumarReservaDialog } from "./SumarReservaDialog";
+import { VoucherUploader } from "./VoucherUploader";
 
 export interface ReservasTabContentProps {
   tripId: string;
@@ -28,8 +31,9 @@ function memberName(members: TripMemberSummary[], id: string): string {
 /**
  * The Reservas tab: real bookings (#12/#13), replacing #10's inert
  * placeholder. "Sumar reserva" adds a new one; each expanded booking's
- * "Editar" reopens the same dialog pre-filled. Phase 4 adds voucher
- * uploads, Phase 5 adds removal.
+ * "Editar" reopens the same dialog pre-filled, and its voucher chips
+ * support uploading and removing files. Phase 5 adds removing the booking
+ * itself and a responsive pass.
  */
 export function ReservasTabContent({
   tripId,
@@ -48,6 +52,31 @@ export function ReservasTabContent({
     );
     setSelectedId(booking.id);
     setDialogBooking(null);
+  }
+
+  function handleVoucherUploaded(bookingId: string, voucher: VoucherFileData) {
+    onBookingsChange(
+      bookings.map((booking) =>
+        booking.id === bookingId ? { ...booking, vouchers: [...booking.vouchers, voucher] } : booking,
+      ),
+    );
+  }
+
+  async function handleRemoveVoucher(bookingId: string, voucherId: string) {
+    const previous = bookings;
+    onBookingsChange(
+      bookings.map((booking) =>
+        booking.id === bookingId
+          ? { ...booking, vouchers: booking.vouchers.filter((voucher) => voucher.id !== voucherId) }
+          : booking,
+      ),
+    );
+
+    const result = await removeVoucherFileAction(tripId, stopId, bookingId, voucherId);
+    if (!result.ok) {
+      // Put it back — the delete didn't actually happen server-side.
+      onBookingsChange(previous);
+    }
   }
 
   return (
@@ -127,30 +156,47 @@ export function ReservasTabContent({
                       />
                     </div>
 
-                    {booking.vouchers.length > 0 ? (
-                      <div className="flex flex-col gap-[var(--space-2)]">
-                        <span className="font-mono text-[length:var(--text-xs)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
-                          Comprobantes
-                        </span>
+                    <div className="flex flex-col gap-[var(--space-2)]">
+                      <span className="font-mono text-[length:var(--text-xs)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
+                        Comprobantes
+                      </span>
+                      {booking.vouchers.length > 0 ? (
                         <div className="flex flex-wrap gap-[var(--space-2)]">
                           {booking.vouchers.map((voucher) => (
-                            <a
+                            <span
                               key={voucher.id}
-                              href={voucher.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={[
-                                "inline-flex items-center gap-[var(--space-2)] rounded-pill bg-surface px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-xs)] font-semibold text-text hover:bg-bg",
-                                FOCUS_RING,
-                              ].join(" ")}
+                              className="inline-flex items-center gap-[var(--space-2)] rounded-pill bg-surface py-[var(--space-2)] pl-[var(--space-4)] pr-[var(--space-2)] text-[length:var(--text-xs)] font-semibold text-text"
                             >
-                              <Icon name="paperclip" size={14} />
-                              {voucher.filename}
-                            </a>
+                              <a
+                                href={voucher.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={["inline-flex items-center gap-[var(--space-2)] hover:text-primary", FOCUS_RING].join(
+                                  " ",
+                                )}
+                              >
+                                <Icon name="paperclip" size={14} />
+                                {voucher.filename}
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveVoucher(booking.id, voucher.id)}
+                                aria-label={`Eliminar ${voucher.filename}`}
+                                className={["rounded-sm text-text-muted hover:text-alert", FOCUS_RING].join(" ")}
+                              >
+                                <Icon name="x" size={12} />
+                              </button>
+                            </span>
                           ))}
                         </div>
-                      </div>
-                    ) : null}
+                      ) : null}
+                      <VoucherUploader
+                        tripId={tripId}
+                        stopId={stopId}
+                        bookingId={booking.id}
+                        onUploaded={(voucher) => handleVoucherUploaded(booking.id, voucher)}
+                      />
+                    </div>
 
                     <button
                       type="button"

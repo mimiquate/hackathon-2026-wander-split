@@ -8,10 +8,17 @@ import { addPlace, removePlace, type AddPlaceResult, type RemovePlaceResult } fr
 import { searchPlacesInCity, type CityPlaceSearchResult } from "@/lib/geo/mapbox-places";
 import {
   createBooking,
+  getBooking,
   updateBooking,
   type CreateBookingResult,
   type UpdateBookingResult,
 } from "@/lib/trips/bookings";
+import {
+  addVoucherFile,
+  removeVoucherFile,
+  type RemoveVoucherFileResult,
+  type VoucherFileData,
+} from "@/lib/trips/vouchers";
 
 async function assertStopAccess(tripId: string, stopId: string): Promise<TripStopData | null> {
   const user = await getCurrentUser();
@@ -115,6 +122,68 @@ export async function updateBookingAction(
   }
 
   const result = await updateBooking({ stopId, bookingId, ...input });
+  if (result.ok) {
+    revalidatePath(`/trips/${tripId}/stops/${stopId}`);
+  }
+  return result;
+}
+
+export interface ConfirmVoucherUploadInput {
+  url: string;
+  filename: string;
+  mimeType: string;
+}
+
+export type ConfirmVoucherUploadResult =
+  | { ok: true; voucher: VoucherFileData }
+  | { ok: false; formError?: string };
+
+/**
+ * Persists a voucher upload's metadata right after the client's upload()
+ * call resolves — belt-and-suspenders alongside the upload endpoint's own
+ * onUploadCompleted webhook (which may not fire promptly, or at all,
+ * outside a real deployment), since addVoucherFile's upsert makes calling
+ * it from both places safe.
+ */
+export async function confirmVoucherUploadAction(
+  tripId: string,
+  stopId: string,
+  bookingId: string,
+  input: ConfirmVoucherUploadInput,
+): Promise<ConfirmVoucherUploadResult> {
+  const stop = await assertStopAccess(tripId, stopId);
+  if (!stop) {
+    return { ok: false, formError: "No tenés acceso a esta parada." };
+  }
+
+  const booking = await getBooking(stopId, bookingId);
+  if (!booking) {
+    return { ok: false, formError: "La reserva no existe en esta parada." };
+  }
+
+  const voucher = await addVoucherFile({ bookingId, ...input });
+  revalidatePath(`/trips/${tripId}/stops/${stopId}`);
+
+  return { ok: true, voucher };
+}
+
+export async function removeVoucherFileAction(
+  tripId: string,
+  stopId: string,
+  bookingId: string,
+  voucherId: string,
+): Promise<RemoveVoucherFileResult> {
+  const stop = await assertStopAccess(tripId, stopId);
+  if (!stop) {
+    return { ok: false, formError: "No tenés acceso a esta parada." };
+  }
+
+  const booking = await getBooking(stopId, bookingId);
+  if (!booking) {
+    return { ok: false, formError: "La reserva no existe en esta parada." };
+  }
+
+  const result = await removeVoucherFile(bookingId, voucherId);
   if (result.ok) {
     revalidatePath(`/trips/${tripId}/stops/${stopId}`);
   }
