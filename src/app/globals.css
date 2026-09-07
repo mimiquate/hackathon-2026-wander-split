@@ -1,0 +1,65 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* Bridge the Ruta Terracota design tokens into Tailwind's theme (ADR 0001),
+   so components can reach for utilities like bg-primary/font-display instead
+   of raw var() calls, while every value still traces back to src/styles/tokens/. */
+@theme static inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-primary: var(--text-on-primary);
+  --color-text-on-accent: var(--text-on-accent);
+  --color-text-on-alert: var(--text-on-alert);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-press: var(--primary-press);
+  --color-secondary: var(--secondary);
+  --color-success: var(--success);
+  --color-alert: var(--alert);
+  --color-social: var(--social);
+  --color-cool: var(--cool);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-focus-ring: var(--focus-ring);
+  --color-avatar-1: var(--avatar-1);
+  --color-avatar-2: var(--avatar-2);
+  --color-avatar-3: var(--avatar-3);
+  --color-avatar-4: var(--avatar-4);
+  --color-avatar-5: var(--avatar-5);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+
+  --spacing-gutter: var(--gutter);
+  --spacing-section-gap: var(--section-gap);
+  --spacing-page-max: var(--page-max);
+  --spacing-control-h-sm: var(--control-h-sm);
+  --spacing-control-h-md: var(--control-h-md);
+  --spacing-control-h-lg: var(--control-h-lg);
+  --spacing-tap-min: var(--tap-min);
+
+  /* The design's own "~900px" mobile threshold (nav collapse, hero/cómo
+     funciona grids) — overrides Tailwind's default 768px so every section
+     collapses at the same point instead of several arbitrary ones. */
+  --breakpoint-md: 900px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: var(--type-body);
+}

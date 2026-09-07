@@ -1,0 +1,6 @@
+/* wonderSplit webfonts.
+   No font binaries were provided with the brand source; the original one-pager
+   loaded these three families straight from Google Fonts, so we keep that link.
+   If real licensed files exist, drop them in assets/fonts/ and replace this
+   @import with local @font-face rules. */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap");

@@ -1,0 +1,11 @@
+/* tokens/fonts.css isn't @imported here: once Tailwind's own @layer output is
+   in the mix, a later @import (even a nested one, like the Google Fonts URL
+   inside that file) violates "@import must precede all other rules" and gets
+   dropped by the CSS optimizer. It's loaded instead as a <link> in the root
+   layout's <head> — see src/app/layout.tsx. The file itself is kept, verbatim,
+   for parity with the design system's token set. */
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/elevation.css";
+@import "./tokens/motion.css";
