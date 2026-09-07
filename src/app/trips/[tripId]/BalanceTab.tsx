@@ -1,26 +1,40 @@
+"use client";
+
+import { useState } from "react";
 import { AlertBanner } from "@/components/forms/AlertBanner";
 import { Avatar } from "@/components/trip/Avatar";
 import { SettleRow } from "@/components/trip/SettleRow";
+import { Button } from "@/components/core/Button";
 import { Card } from "@/components/core/Card";
 import { EXPENSE_CATEGORY_LABELS } from "@/lib/trips/constants";
 import { formatMoney } from "@/lib/trips/format";
 import type { TripCrewMember } from "@/lib/trips/membership";
 import type { TripBalanceResult } from "@/lib/trips/balance";
+import type { HistoricalSettledTransfer, SettleableTransfer, TripSettlement } from "@/lib/trips/settlement";
+import { transferKey } from "@/lib/trips/transfer-key";
+import { markTransferSettledAction } from "./actions";
 
 export interface BalanceTabProps {
+  tripId: string;
   members: TripCrewMember[];
   balance: TripBalanceResult;
+  settlement: TripSettlement;
 }
 
 const SECTION_TITLE_CLASS = "m-0 mb-[var(--space-5)] text-[length:var(--text-base)] font-semibold text-text";
 const EMPTY_STATE_CLASS = "m-0 text-center text-[length:var(--text-sm)] text-text-muted";
 
-/** Read-only: the per-person paid/consumed/net balance, the settle-up
- * transfer list, and the #17-absorbed trip-wide totals. Live, uncached —
- * every figure here is recomputed from the trip's current expenses on every
- * render, never a stored snapshot. */
-export function BalanceTab({ members, balance }: BalanceTabProps) {
-  const { currency, balances, transfers, totalSpend, categoryTotals, hasPendingExpenses } = balance;
+/** The per-person paid/consumed/net balance, the settle-up transfer list
+ * (with its "Marcar como saldada" action, gated on the trip being
+ * finished), and the #17-absorbed trip-wide totals. Everything but the
+ * settled/not-settled flag is live, uncached — recomputed from the trip's
+ * current expenses on every render, never a stored snapshot. */
+export function BalanceTab({ tripId, members, balance, settlement }: BalanceTabProps) {
+  const { currency, balances, totalSpend, categoryTotals, hasPendingExpenses } = balance;
+  const { canSettle, historicalSettledTransfers } = settlement;
+  const [transfers, setTransfers] = useState<SettleableTransfer[]>(settlement.transfers);
+  const [settlingKey, setSettlingKey] = useState<string | null>(null);
+
   const memberById = new Map(members.map((member) => [member.membershipId, member]));
   const money = (amount: number) => formatMoney(amount, currency);
   const nameFor = (membershipId: string) => memberById.get(membershipId)?.displayName ?? "?";
@@ -35,7 +49,18 @@ export function BalanceTab({ members, balance }: BalanceTabProps) {
     );
   }
 
-  const isAllSettled = transfers.length === 0;
+  const isAllSettled = transfers.every((transfer) => transfer.settled);
+
+  async function handleSettle(transfer: SettleableTransfer) {
+    const key = transferKey(transfer);
+    setSettlingKey(key);
+    const { fromMembershipId, toMembershipId, amount } = transfer;
+    const result = await markTransferSettledAction(tripId, { fromMembershipId, toMembershipId, amount });
+    if (result.ok) {
+      setTransfers((current) => current.map((t) => (transferKey(t) === key ? { ...t, settled: true } : t)));
+    }
+    setSettlingKey(null);
+  }
 
   return (
     <div className="flex flex-col gap-[var(--space-6)]">
@@ -82,22 +107,49 @@ export function BalanceTab({ members, balance }: BalanceTabProps) {
           <p className={EMPTY_STATE_CLASS}>Todo saldado. Nadie le debe nada a nadie.</p>
         ) : (
           <div className="flex flex-col gap-[var(--space-4)]">
-            {transfers.map((transfer, index) => (
+            {transfers.map((transfer) => {
+              const key = transferKey(transfer);
+              return (
+                <div key={key} className="flex items-center gap-[var(--space-3)]">
+                  <SettleRow
+                    className="flex-1"
+                    from={{ name: nameFor(transfer.fromMembershipId), colorIndex: memberById.get(transfer.fromMembershipId)?.colorIndex }}
+                    to={{ name: nameFor(transfer.toMembershipId), colorIndex: memberById.get(transfer.toMembershipId)?.colorIndex }}
+                    amount={money(transfer.amount)}
+                    done={transfer.settled}
+                  />
+                  {!transfer.settled ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={!canSettle || settlingKey === key}
+                      onClick={() => handleSettle(transfer)}
+                    >
+                      Marcar como saldada
+                    </Button>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {historicalSettledTransfers.length > 0 ? (
+          <div className="mt-[var(--space-5)] flex flex-col gap-[var(--space-3)] border-t border-dashed border-border pt-[var(--space-4)]">
+            <p className="m-0 text-[length:var(--text-xs)] text-text-muted">
+              Ya saldadas, pero el balance actual ya no las pide (los gastos cambiaron):
+            </p>
+            {historicalSettledTransfers.map((transfer: HistoricalSettledTransfer) => (
               <SettleRow
-                key={`${transfer.fromMembershipId}-${transfer.toMembershipId}-${index}`}
-                from={{
-                  name: nameFor(transfer.fromMembershipId),
-                  colorIndex: memberById.get(transfer.fromMembershipId)?.colorIndex,
-                }}
-                to={{
-                  name: nameFor(transfer.toMembershipId),
-                  colorIndex: memberById.get(transfer.toMembershipId)?.colorIndex,
-                }}
+                key={transferKey(transfer)}
+                from={{ name: nameFor(transfer.fromMembershipId), colorIndex: memberById.get(transfer.fromMembershipId)?.colorIndex }}
+                to={{ name: nameFor(transfer.toMembershipId), colorIndex: memberById.get(transfer.toMembershipId)?.colorIndex }}
                 amount={money(transfer.amount)}
+                done
               />
             ))}
           </div>
-        )}
+        ) : null}
       </Card>
 
       <Card padding="lg">

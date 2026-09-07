@@ -70,23 +70,30 @@ model LoginAttempt {
 }
 
 model Trip {
-  id        String   @id @default(cuid())
-  name      String
+  id         String    @id @default(cuid())
+  name       String
   // A calendar date, not an instant — a trip starts on a day. @db.Date keeps
   // Postgres from storing a time component that a non-UTC server would shift
   // into the previous/next day. There is deliberately no endDate column: it's
   // derived from this date plus the sum of every stop's nights (#8) and is
   // undefined for a trip with no stops yet.
-  startDate DateTime @db.Date
+  startDate  DateTime  @db.Date
   // "USD" | "EUR" — see TRIP_CURRENCIES in src/lib/trips/constants.ts.
-  currency  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  currency   String
+  // Null until the trip is marked finished. A bare stand-in for #16 (mark
+  // trip finished), added early here only because #15 Phase 3's "Marcar
+  // como saldada" gates on it — #16 hasn't shipped yet. #16's own plan owns
+  // the real finish flow (the validation gate, the bulk cash-conversion
+  // step); this column is just the flag they'll set.
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  memberships  TripMembership[]
-  invite       TripInvite?
-  reservations TripInviteReservation[]
-  stops        TripStop[]
+  memberships      TripMembership[]
+  invite           TripInvite?
+  reservations     TripInviteReservation[]
+  stops            TripStop[]
+  settledTransfers SettledTransfer[]
 }
 
 model TripMembership {
@@ -105,12 +112,14 @@ model TripMembership {
   trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  claimedReservation TripInviteReservation?
-  bookingsReserved   Booking[]              @relation("BookingReservedBy")
-  bookingsPaid       Booking[]              @relation("BookingPaidBy")
-  bookingUsages      BookingUser[]
-  expensesPaid       Expense[]              @relation("ExpensePaidBy")
-  expenseUsages      ExpenseUser[]
+  claimedReservation         TripInviteReservation?
+  bookingsReserved           Booking[]              @relation("BookingReservedBy")
+  bookingsPaid               Booking[]              @relation("BookingPaidBy")
+  bookingUsages              BookingUser[]
+  expensesPaid               Expense[]              @relation("ExpensePaidBy")
+  expenseUsages              ExpenseUser[]
+  settledTransfersAsDebtor   SettledTransfer[]      @relation("SettledTransferDebtor")
+  settledTransfersAsCreditor SettledTransfer[]      @relation("SettledTransferCreditor")
 
   @@unique([tripId, userId])
   @@index([userId])
@@ -293,4 +302,28 @@ model ExpenseUser {
 
   @@unique([expenseId, membershipId])
   @@index([membershipId])
+}
+
+// #15 Phase 3's one piece of real persisted state: which of Phase 1's
+// computed transfers someone has actually paid. Identified by its own
+// debtor/creditor/amount, not a foreign key to any stored transfer row —
+// the transfer list itself is never stored, only recomputed fresh. A
+// settled record survives a recomputation as long as the same triple still
+// comes up; see getTripSettlement in src/lib/trips/settlement.ts for how a
+// record that no longer matches anything live is surfaced as historical
+// instead of silently dropped.
+model SettledTransfer {
+  id               String   @id @default(cuid())
+  tripId           String
+  fromMembershipId String
+  toMembershipId   String
+  amount           Float
+  settledAt        DateTime @default(now())
+
+  trip           Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  fromMembership TripMembership @relation("SettledTransferDebtor", fields: [fromMembershipId], references: [id], onDelete: Cascade)
+  toMembership   TripMembership @relation("SettledTransferCreditor", fields: [toMembershipId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, fromMembershipId, toMembershipId, amount])
+  @@index([tripId])
 }

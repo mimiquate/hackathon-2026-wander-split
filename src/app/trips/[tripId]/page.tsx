@@ -6,6 +6,7 @@ import { findTripMembership } from "@/lib/trips/membership";
 import { getTripInvitePanel } from "@/lib/trips/invite";
 import { getTripEditPanel } from "@/lib/trips/update";
 import { getTripBalance } from "@/lib/trips/balance";
+import { getTripSettlement } from "@/lib/trips/settlement";
 import { TripShell, type TripTab } from "./TripShell";
 import { RutaPanel } from "./RutaPanel";
 import { GrupoTab } from "./GrupoTab";
@@ -48,6 +49,7 @@ export default async function TripPage({
 
   const inviteUrl = await buildInviteUrl(panel.inviteToken);
   const balance = await getTripBalance(tripId);
+  const settlement = await getTripSettlement(tripId, balance.transfers);
 
   // Default to "ruta" tab, or use tab param if provided
   const defaultTab: TripTab = (tabParam as TripTab) || "ruta";
@@ -71,7 +73,9 @@ export default async function TripPage({
           />
         ),
         gastos: <GastosStub />,
-        balance: <BalanceTab members={panel.members} balance={balance} />,
+        balance: (
+          <BalanceTab tripId={tripId} members={panel.members} balance={balance} settlement={settlement} />
+        ),
       }}
     />
   );
