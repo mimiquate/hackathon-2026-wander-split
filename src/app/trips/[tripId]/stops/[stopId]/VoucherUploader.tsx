@@ -71,7 +71,7 @@ export function VoucherUploader({ tripId, stopId, bookingId, onUploaded }: Vouch
     <div className="flex flex-col gap-[var(--space-2)]">
       <label
         className={[
-          "inline-flex w-fit items-center gap-[var(--space-2)] rounded-pill bg-surface px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-xs)] font-semibold text-text",
+          "inline-flex w-fit items-center gap-[var(--space-2)] rounded-pill bg-surface px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-xs)] font-semibold text-text max-md:min-h-tap-min",
           uploading ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-bg",
           FOCUS_RING_INSET,
         ].join(" ")}

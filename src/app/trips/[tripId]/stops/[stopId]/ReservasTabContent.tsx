@@ -8,7 +8,7 @@ import { FOCUS_RING } from "@/lib/styles";
 import type { BookingDetail } from "@/lib/trips/bookings";
 import type { TripMemberSummary } from "@/lib/trips/membership";
 import type { VoucherFileData } from "@/lib/trips/vouchers";
-import { removeVoucherFileAction } from "./actions";
+import { removeBookingAction, removeVoucherFileAction } from "./actions";
 import { SumarReservaDialog } from "./SumarReservaDialog";
 import { VoucherUploader } from "./VoucherUploader";
 
@@ -31,9 +31,9 @@ function memberName(members: TripMemberSummary[], id: string): string {
 /**
  * The Reservas tab: real bookings (#12/#13), replacing #10's inert
  * placeholder. "Sumar reserva" adds a new one; each expanded booking's
- * "Editar" reopens the same dialog pre-filled, and its voucher chips
- * support uploading and removing files. Phase 5 adds removing the booking
- * itself and a responsive pass.
+ * "Editar" reopens the same dialog pre-filled, its voucher chips support
+ * uploading and removing files, and "Eliminar reserva" removes the whole
+ * booking — no confirmation prompt, matching #10's place-removal pattern.
  */
 export function ReservasTabContent({
   tripId,
@@ -79,9 +79,26 @@ export function ReservasTabContent({
     }
   }
 
+  async function handleRemoveBooking(bookingId: string) {
+    const previous = bookings;
+    onBookingsChange(bookings.filter((booking) => booking.id !== bookingId));
+    if (selectedId === bookingId) setSelectedId(null);
+
+    const result = await removeBookingAction(tripId, stopId, bookingId);
+    if (!result.ok) {
+      // Put it back — the delete didn't actually happen server-side.
+      onBookingsChange(previous);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-[var(--space-4)]">
-      <Button type="button" iconLeft="plus" onClick={() => setDialogBooking("new")}>
+      <Button
+        type="button"
+        iconLeft="plus"
+        onClick={() => setDialogBooking("new")}
+        className="max-md:min-h-tap-min"
+      >
         Sumar reserva
       </Button>
 
@@ -101,7 +118,7 @@ export function ReservasTabContent({
                   onClick={() => setSelectedId(isSelected ? null : booking.id)}
                   aria-expanded={isSelected}
                   className={[
-                    "flex w-full items-center justify-between gap-[var(--space-3)] rounded-lg px-[var(--space-4)] py-[var(--space-3)] text-left transition-colors",
+                    "flex w-full items-center justify-between gap-[var(--space-3)] rounded-lg px-[var(--space-4)] py-[var(--space-3)] text-left transition-colors max-md:min-h-tap-min",
                     isSelected ? "bg-primary text-text-on-primary" : "bg-surface-2 text-text hover:bg-surface",
                     FOCUS_RING,
                   ].join(" ")}
@@ -121,7 +138,7 @@ export function ReservasTabContent({
 
                 {isSelected ? (
                   <div className="flex flex-col gap-[var(--space-4)] rounded-lg bg-surface-2 px-[var(--space-4)] py-[var(--space-4)]">
-                    <div className="grid grid-cols-2 gap-[var(--space-4)]">
+                    <div className="grid grid-cols-1 gap-[var(--space-4)] sm:grid-cols-2">
                       <div className="flex flex-col gap-[var(--space-1)]">
                         <span className="font-mono text-[length:var(--text-xs)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
                           Quién reservó
@@ -165,15 +182,16 @@ export function ReservasTabContent({
                           {booking.vouchers.map((voucher) => (
                             <span
                               key={voucher.id}
-                              className="inline-flex items-center gap-[var(--space-2)] rounded-pill bg-surface py-[var(--space-2)] pl-[var(--space-4)] pr-[var(--space-2)] text-[length:var(--text-xs)] font-semibold text-text"
+                              className="inline-flex items-center gap-[var(--space-1)] rounded-pill bg-surface pl-[var(--space-4)] pr-[var(--space-1)] text-[length:var(--text-xs)] font-semibold text-text"
                             >
                               <a
                                 href={voucher.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className={["inline-flex items-center gap-[var(--space-2)] hover:text-primary", FOCUS_RING].join(
-                                  " ",
-                                )}
+                                className={[
+                                  "inline-flex items-center gap-[var(--space-2)] py-[var(--space-2)] hover:text-primary max-md:min-h-tap-min",
+                                  FOCUS_RING,
+                                ].join(" ")}
                               >
                                 <Icon name="paperclip" size={14} />
                                 {voucher.filename}
@@ -182,7 +200,10 @@ export function ReservasTabContent({
                                 type="button"
                                 onClick={() => handleRemoveVoucher(booking.id, voucher.id)}
                                 aria-label={`Eliminar ${voucher.filename}`}
-                                className={["rounded-sm text-text-muted hover:text-alert", FOCUS_RING].join(" ")}
+                                className={[
+                                  "inline-flex items-center justify-center rounded-sm text-text-muted hover:text-alert max-md:min-h-tap-min max-md:min-w-tap-min",
+                                  FOCUS_RING,
+                                ].join(" ")}
                               >
                                 <Icon name="x" size={12} />
                               </button>
@@ -198,17 +219,30 @@ export function ReservasTabContent({
                       />
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setDialogBooking(booking)}
-                      className={[
-                        "inline-flex items-center gap-[var(--space-2)] self-start rounded-sm text-[length:var(--text-sm)] font-semibold text-text hover:text-primary",
-                        FOCUS_RING,
-                      ].join(" ")}
-                    >
-                      <Icon name="pencil" size={14} />
-                      Editar
-                    </button>
+                    <div className="flex flex-wrap gap-[var(--space-5)]">
+                      <button
+                        type="button"
+                        onClick={() => setDialogBooking(booking)}
+                        className={[
+                          "inline-flex items-center gap-[var(--space-2)] rounded-sm text-[length:var(--text-sm)] font-semibold text-text hover:text-primary max-md:min-h-tap-min",
+                          FOCUS_RING,
+                        ].join(" ")}
+                      >
+                        <Icon name="pencil" size={14} />
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBooking(booking.id)}
+                        className={[
+                          "inline-flex items-center gap-[var(--space-2)] rounded-sm text-[length:var(--text-sm)] font-semibold text-text hover:text-alert max-md:min-h-tap-min",
+                          FOCUS_RING,
+                        ].join(" ")}
+                      >
+                        <Icon name="trash-2" size={14} />
+                        Eliminar reserva
+                      </button>
+                    </div>
                   </div>
                 ) : null}
               </li>

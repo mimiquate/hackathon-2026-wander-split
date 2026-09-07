@@ -9,8 +9,10 @@ import { searchPlacesInCity, type CityPlaceSearchResult } from "@/lib/geo/mapbox
 import {
   createBooking,
   getBooking,
+  removeBooking,
   updateBooking,
   type CreateBookingResult,
+  type RemoveBookingResult,
   type UpdateBookingResult,
 } from "@/lib/trips/bookings";
 import {
@@ -122,6 +124,23 @@ export async function updateBookingAction(
   }
 
   const result = await updateBooking({ stopId, bookingId, ...input });
+  if (result.ok) {
+    revalidatePath(`/trips/${tripId}/stops/${stopId}`);
+  }
+  return result;
+}
+
+export async function removeBookingAction(
+  tripId: string,
+  stopId: string,
+  bookingId: string,
+): Promise<RemoveBookingResult> {
+  const stop = await assertStopAccess(tripId, stopId);
+  if (!stop) {
+    return { ok: false, formError: "No tenés acceso a esta parada." };
+  }
+
+  const result = await removeBooking(stopId, bookingId);
   if (result.ok) {
     revalidatePath(`/trips/${tripId}/stops/${stopId}`);
   }
