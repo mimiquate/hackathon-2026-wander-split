@@ -1,4 +1,8 @@
+import { prisma } from "@/lib/prisma";
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from "@/lib/trips/constants";
+import { getTripMembers } from "@/lib/trips/membership";
+import { getStopsForTrip } from "@/lib/trips/stops";
+import { getExpensesForStop } from "@/lib/trips/expenses";
 
 // Money only ever moves through this module as integer cents — every dollar
 // amount coming in or going out is converted at the boundary (toCents /
@@ -162,5 +166,32 @@ export function calculateTripBalance(crewMembershipIds: string[], expenses: Bala
       amount: fromCents(categoryTotalCents.get(category) ?? 0),
     })),
     hasPendingExpenses,
+  };
+}
+
+export interface TripBalanceResult extends TripBalance {
+  /** The trip's own currency (Trip.currency) — every figure above is
+   * formatted against this, per #15's face-value/no-conversion rule. */
+  currency: string;
+}
+
+/** Gathers a trip's crew and every stop's expenses, then runs the pure
+ * calculation above. Always recomputed fresh — nothing here is cached, per
+ * #15's "live, uncached math" rule. */
+export async function getTripBalance(tripId: string): Promise<TripBalanceResult> {
+  const [trip, members, stops] = await Promise.all([
+    prisma.trip.findUniqueOrThrow({ where: { id: tripId }, select: { currency: true } }),
+    getTripMembers(tripId),
+    getStopsForTrip(tripId),
+  ]);
+
+  const expensesByStop = await Promise.all(stops.map((stop) => getExpensesForStop(stop.id)));
+
+  return {
+    ...calculateTripBalance(
+      members.map((member) => member.id),
+      expensesByStop.flat(),
+    ),
+    currency: trip.currency,
   };
 }

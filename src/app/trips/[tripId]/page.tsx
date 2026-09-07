@@ -5,11 +5,12 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { findTripMembership } from "@/lib/trips/membership";
 import { getTripInvitePanel } from "@/lib/trips/invite";
 import { getTripEditPanel } from "@/lib/trips/update";
+import { getTripBalance } from "@/lib/trips/balance";
 import { TripShell, type TripTab } from "./TripShell";
 import { RutaPanel } from "./RutaPanel";
 import { GrupoTab } from "./GrupoTab";
 import { GastosStub } from "./GastosStub";
-import { BalanceStub } from "./BalanceStub";
+import { BalanceTab } from "./BalanceTab";
 
 export const metadata: Metadata = { title: "Tu viaje — wonderSplit" };
 
@@ -46,6 +47,7 @@ export default async function TripPage({
   if (!editPanel) notFound();
 
   const inviteUrl = await buildInviteUrl(panel.inviteToken);
+  const balance = await getTripBalance(tripId);
 
   // Default to "ruta" tab, or use tab param if provided
   const defaultTab: TripTab = (tabParam as TripTab) || "ruta";
@@ -69,7 +71,7 @@ export default async function TripPage({
           />
         ),
         gastos: <GastosStub />,
-        balance: <BalanceStub />,
+        balance: <BalanceTab members={panel.members} balance={balance} />,
       }}
     />
   );

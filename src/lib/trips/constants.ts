@@ -65,6 +65,16 @@ export function isExpenseCategory(value: string): value is ExpenseCategory {
   return (EXPENSE_CATEGORIES as readonly string[]).includes(value);
 }
 
+// #15's Balance tab is the first screen to render a category, so this map
+// starts here — extending it is a one-line change alongside EXPENSE_CATEGORIES.
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  transporte: "Transporte",
+  alojamiento: "Alojamiento",
+  comida: "Comida",
+  actividades: "Actividades",
+  otro: "Otro",
+};
+
 // Wider than TRIP_CURRENCIES — an expense can be paid in any currency
 // encountered while traveling, not just the trip's own USD/EUR.
 export const EXPENSE_CURRENCIES = ["USD", "EUR", "ARS", "GBP", "BRL", "CLP", "UYU", "MXN"] as const;
