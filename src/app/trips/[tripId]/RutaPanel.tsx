@@ -10,9 +10,8 @@ import { RouteMap } from "@/components/site/RouteMap";
 import { FOCUS_RING } from "@/lib/styles";
 import { MAX_STOPS_PER_TRIP } from "@/lib/trips/constants";
 import { haversineDistance } from "@/lib/geo/haversine";
-import { formatCalendarDate, parseCalendarDate } from "@/lib/trips/dates";
+import { computeStopDates, type DisplayStop } from "@/lib/trips/stop-schedule";
 import type { CitySearchResult } from "@/lib/geo/mapbox-search";
-import type { TripStopData } from "@/lib/trips/stops";
 import {
   searchCitiesAction,
   addStopAction,
@@ -27,11 +26,6 @@ import {
 export interface RutaPanelProps {
   tripId: string;
   tripStartDate: string; // "YYYY-MM-DD"
-}
-
-interface DisplayStop extends TripStopData {
-  computedStartDate: string; // "YYYY-MM-DD"
-  computedEndDate: string; // "YYYY-MM-DD"
 }
 
 export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
@@ -59,30 +53,6 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
     }
     loadStops();
   }, [tripId, tripStartDate]);
-
-  function computeStopDates(stopsData: TripStopData[], startDateStr: string): DisplayStop[] {
-    const startDate = parseCalendarDate(startDateStr);
-    if (!startDate) return [];
-
-    return stopsData.map((stop) => {
-      // Calculate cumulative nights from all previous stops
-      const nightsBeforeThisStop = stopsData
-        .filter((s) => s.position < stop.position)
-        .reduce((sum, s) => sum + s.nights, 0);
-
-      const computedStart = new Date(startDate);
-      computedStart.setDate(computedStart.getDate() + nightsBeforeThisStop);
-
-      const computedEnd = new Date(computedStart);
-      computedEnd.setDate(computedEnd.getDate() + stop.nights);
-
-      return {
-        ...stop,
-        computedStartDate: formatCalendarDate(computedStart),
-        computedEndDate: formatCalendarDate(computedEnd),
-      };
-    });
-  }
 
   // Debounced search
   useEffect(() => {

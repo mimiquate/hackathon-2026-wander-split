@@ -74,6 +74,27 @@ export function RouteMap({ stops, numbered = false, interactive = false, onStopC
     [points],
   );
 
+  // geoMercator().fitExtent degenerates on a single-point "line" (a
+  // zero-area bounding box), so a lone stop gets its own small padded box
+  // to fit against instead of the real (pointless) route line.
+  const extentGeometry: Feature<LineString> = useMemo(() => {
+    if (points.length !== 1) return routeLine;
+
+    const [lon, lat] = points[0].coords;
+    const pad = 2; // degrees — enough to give a lone marker sane breathing room
+    return {
+      type: "Feature",
+      properties: null,
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [lon - pad, lat - pad],
+          [lon + pad, lat + pad],
+        ],
+      },
+    };
+  }, [points, routeLine]);
+
   const routeLabel =
     points.length === 1
       ? `Ruta: ${points[0].name}`
@@ -118,7 +139,7 @@ export function RouteMap({ stops, numbered = false, interactive = false, onStopC
           [110, 52],
           [width - 110, height - 44],
         ],
-        routeLine,
+        extentGeometry,
       );
       const path = geoPath(projection);
 
@@ -257,7 +278,7 @@ export function RouteMap({ stops, numbered = false, interactive = false, onStopC
     const observer = new ResizeObserver(draw);
     observer.observe(container);
     return () => observer.disconnect();
-  }, [countries, points, routeLine, routeLabel, numbered, interactive, onStopClick, stops]);
+  }, [countries, points, routeLine, extentGeometry, routeLabel, numbered, interactive, onStopClick, stops]);
 
   return (
     <div ref={containerRef} className="h-[320px] w-full">
