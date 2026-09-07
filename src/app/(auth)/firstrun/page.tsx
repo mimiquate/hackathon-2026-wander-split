@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Tu perfil — wonderSplit" };
 export default async function FirstRunPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.firstRunCompletedAt) redirect("/home");
+  if (user.firstRunCompletedAt) redirect("/trips");
 
   return (
     <AuthShell

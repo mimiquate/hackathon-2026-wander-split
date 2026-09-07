@@ -49,7 +49,7 @@ export async function isSessionValid(sessionToken: string): Promise<boolean> {
   return user !== null;
 }
 
-export async function resolveAuthRedirectPath(sessionToken: string): Promise<"/home" | "/firstrun"> {
+export async function resolveAuthRedirectPath(sessionToken: string): Promise<"/trips" | "/firstrun"> {
   const user = await getUserBySessionToken(sessionToken);
-  return user?.firstRunCompletedAt ? "/home" : "/firstrun";
+  return user?.firstRunCompletedAt ? "/trips" : "/firstrun";
 }

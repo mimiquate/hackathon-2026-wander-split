@@ -83,14 +83,14 @@ describe("database sessions", () => {
       expect(path).toEqual("/firstrun");
     });
 
-    it("returns /home for a user with firstRunCompletedAt set", async () => {
+    it("returns /trips for a user with firstRunCompletedAt set", async () => {
       await prisma.user.update({
         where: { id: userId },
         data: { firstRunCompletedAt: new Date() },
       });
       const { sessionToken } = await createDatabaseSession(userId);
       const path = await resolveAuthRedirectPath(sessionToken);
-      expect(path).toEqual("/home");
+      expect(path).toEqual("/trips");
     });
   });
 });
