@@ -2,20 +2,15 @@ import { RouteMap } from "./RouteMap";
 
 export function RouteSection() {
   return (
-    <section className="border-t border-border px-10 py-[var(--section-gap)]">
+    <section className="border-t border-border bg-surface px-[var(--gutter)] py-[var(--space-9)]">
       <div className="mx-auto max-w-[var(--page-max)]">
-        <h2 className="font-display text-[length:var(--text-lg)] font-semibold">
-          La ruta
-        </h2>
-        <div className="mt-6">
+        <div className="flex flex-wrap justify-between gap-3 font-mono text-[length:var(--text-eyebrow)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
+          <span>La ruta</span>
+          <span>1.240 km · 7 noches</span>
+        </div>
+        <div className="mt-[14px] overflow-hidden rounded-xl bg-bg">
           <RouteMap />
         </div>
-        {/* ~1.160 km is a real road-distance estimate for Sevilla→Madrid→Barcelona
-            (the design source's "1.240 km" figure was for the earlier Lisboa→
-            Oporto→Sevilla route, not verbatim for this one). */}
-        <p className="mt-3 font-mono text-[length:var(--text-xs)] text-text-muted">
-          3 paradas · 1.160 km
-        </p>
       </div>
     </section>
   );
