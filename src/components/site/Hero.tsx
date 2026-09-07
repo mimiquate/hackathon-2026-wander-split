@@ -5,7 +5,7 @@ import { TripPreview } from "./TripPreview";
 
 export function Hero() {
   return (
-    <section className="mx-auto grid max-w-[var(--page-max)] animate-[ws-rise_var(--dur-enter)_var(--ease-out)_both] grid-cols-1 items-center gap-12 px-10 py-[72px] lg:grid-cols-[1.1fr_0.9fr]">
+    <section className="mx-auto grid max-w-[var(--page-max)] animate-[ws-rise_var(--dur-enter)_var(--ease-out)_both] grid-cols-1 items-center gap-12 px-10 py-[72px] md:grid-cols-[1.1fr_0.9fr]">
       <div>
         <div className="font-mono text-[length:var(--text-eyebrow)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
           Viajes en grupo · 3 ciudades

@@ -28,7 +28,7 @@ export function HowItWorks() {
         <h2 className="font-display text-[length:var(--text-lg)] font-semibold">
           Cómo funciona
         </h2>
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
           {STEPS.map((step) => (
             <div key={step.title}>
               <span className="flex h-tap-min w-tap-min items-center justify-center rounded-xl bg-surface-2 text-primary">
