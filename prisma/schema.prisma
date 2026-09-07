@@ -70,8 +70,8 @@ model LoginAttempt {
 }
 
 model Trip {
-  id   String @id @default(cuid())
-  name String
+  id        String   @id @default(cuid())
+  name      String
   // A calendar date, not an instant — a trip starts on a day. @db.Date keeps
   // Postgres from storing a time component that a non-UTC server would shift
   // into the previous/next day. There is deliberately no endDate column: it's
@@ -90,11 +90,11 @@ model Trip {
 }
 
 model TripMembership {
-  id     String @id @default(cuid())
-  tripId String
-  userId String
+  id          String   @id @default(cuid())
+  tripId      String
+  userId      String
   // "admin" (the creator) | "participant" — see TRIP_ROLES in src/lib/trips/constants.ts.
-  role   String
+  role        String
   // Per-trip identity, deliberately separate from the account's own name and
   // avatar color — the same person can be "Ana" here and "Ana Pérez"
   // elsewhere, or a different color entirely on a different trip.
@@ -106,6 +106,9 @@ model TripMembership {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   claimedReservation TripInviteReservation?
+  bookingsReserved   Booking[]              @relation("BookingReservedBy")
+  bookingsPaid       Booking[]              @relation("BookingPaidBy")
+  bookingUsages      BookingUser[]
 
   @@unique([tripId, userId])
   @@index([userId])
@@ -158,8 +161,9 @@ model TripStop {
   transportMode String?
   createdAt     DateTime @default(now())
 
-  trip   Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  places TripPlace[]
+  trip     Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  places   TripPlace[]
+  bookings Booking[]
 
   @@unique([tripId, position])
   @@index([tripId])
@@ -183,4 +187,55 @@ model TripPlace {
   stop TripStop @relation(fields: [stopId], references: [id], onDelete: Cascade)
 
   @@index([stopId])
+}
+
+// A confirmed booking — hotel, flight, activity, anything with a
+// reservation — belonging to a stop, same as TripPlace (#10). #12's "whose
+// name it's under" and #13's "who to ask to show the voucher" are the same
+// field (reservedBy), matching the design's own voucher chip.
+model Booking {
+  id           String   @id @default(cuid())
+  stopId       String
+  label        String
+  reservedById String
+  paidById     String
+  createdAt    DateTime @default(now())
+
+  stop       TripStop       @relation(fields: [stopId], references: [id], onDelete: Cascade)
+  reservedBy TripMembership @relation("BookingReservedBy", fields: [reservedById], references: [id])
+  paidBy     TripMembership @relation("BookingPaidBy", fields: [paidById], references: [id])
+  users      BookingUser[]
+  vouchers   VoucherFile[]
+
+  @@index([stopId])
+}
+
+// "Quién lo usa" — a many-to-many against trip members, not a fixed-size
+// list; a booking can cover one person or the whole crew.
+model BookingUser {
+  id           String @id @default(cuid())
+  bookingId    String
+  membershipId String
+
+  booking    Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  membership TripMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, membershipId])
+  @@index([membershipId])
+}
+
+// One uploaded file (PDF or image) attached to a booking, stored in Vercel
+// Blob (ADR 0009) — only the resulting metadata lives here, never the
+// bytes. A booking can have any number of these.
+model VoucherFile {
+  id        String   @id @default(cuid())
+  bookingId String
+  url       String
+  filename  String
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
 }
