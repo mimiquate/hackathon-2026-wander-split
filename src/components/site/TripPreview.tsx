@@ -8,7 +8,7 @@ export function TripPreview() {
 
   return (
     <Card elevated padding="md">
-      <div className="font-mono text-[length:var(--text-eyebrow)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
+      <div className="font-mono text-[length:var(--text-eyebrow)] tracking-[var(--tracking-eyebrow)] text-text-muted">
         12–19 oct · 6 viajeros
       </div>
       <h3 className="mb-[14px] mt-[6px] font-display text-[length:var(--text-md)] font-bold leading-[var(--leading-snug)]">
