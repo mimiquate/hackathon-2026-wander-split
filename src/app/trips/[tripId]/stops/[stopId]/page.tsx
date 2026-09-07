@@ -6,9 +6,9 @@ import { findTripMembership } from "@/lib/trips/membership";
 import { getTripEditPanel } from "@/lib/trips/update";
 import { computeStopDateRange, getStopsForTrip } from "@/lib/trips/stops";
 import { getPlacesForStop } from "@/lib/trips/places";
-import { formatShortDate, parseCalendarDate } from "@/lib/trips/dates";
-import { PLACE_KIND_LABELS, type PlaceKind } from "@/lib/trips/constants";
+import { formatCalendarDate, parseCalendarDate } from "@/lib/trips/dates";
 import { BackButton } from "./BackButton";
+import { PlanTab } from "./PlanTab";
 
 export const metadata: Metadata = { title: "Ciudad — wonderSplit" };
 
@@ -61,11 +61,6 @@ export default async function StopPage({
           </h1>
           <StatusChip state={stop.status as StatusChipState} />
         </div>
-        <div className="font-mono text-[length:var(--text-xs)] text-text-muted">
-          {formatShortDate(range.startDate)}–{formatShortDate(range.endDate)} ·{" "}
-          {stop.nights} noche{stop.nights !== 1 ? "s" : ""} · parada {range.position} de{" "}
-          {range.totalStops}
-        </div>
       </div>
 
       <div className="flex gap-[var(--space-2)]">
@@ -87,29 +82,17 @@ export default async function StopPage({
         ))}
       </div>
 
-      <div className="flex flex-col gap-[var(--space-3)]">
-        {places.length === 0 ? (
-          <p className="m-0 text-center text-[length:var(--text-sm)] text-text-muted">
-            Todavía no marcaste ningún lugar en {stop.city}.
-          </p>
-        ) : (
-          <ul className="flex list-none flex-col gap-[var(--space-3)] p-0">
-            {places.map((place) => (
-              <li
-                key={place.id}
-                className="flex items-center justify-between gap-[var(--space-3)] rounded-lg bg-surface-2 px-[var(--space-4)] py-[var(--space-3)]"
-              >
-                <span className="text-[length:var(--text-sm)] font-medium text-text">
-                  {place.label}
-                </span>
-                <span className="font-mono text-[length:var(--text-xs)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
-                  {PLACE_KIND_LABELS[place.kind as PlaceKind] ?? place.kind}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <PlanTab
+        tripId={tripId}
+        stopId={stopId}
+        cityName={stop.city}
+        city={{ latitude: stop.latitude, longitude: stop.longitude }}
+        initialNights={stop.nights}
+        stopStartDate={formatCalendarDate(range.startDate)}
+        position={range.position}
+        totalStops={range.totalStops}
+        places={places}
+      />
     </div>
   );
 }
