@@ -11,7 +11,7 @@ export function FinalCta() {
     <section id="precios" className="scroll-mt-20 border-t border-border bg-surface">
       <div className="mx-auto max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--section-gap)]">
         <div className="mx-auto max-w-[620px] text-center">
-          <div className="font-mono text-[length:var(--text-eyebrow)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
+          <div className="font-mono text-[length:var(--text-eyebrow)] tracking-[var(--tracking-eyebrow)] text-text-muted">
             Beta abierta
           </div>
           <h2 className="mt-3 text-balance font-display text-[length:var(--text-xl)] font-bold leading-[var(--leading-tight)] tracking-[var(--tracking-display)]">

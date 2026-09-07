@@ -7,7 +7,7 @@ export function Hero() {
   return (
     <section className="mx-auto grid max-w-[var(--page-max)] animate-[ws-rise_var(--dur-enter)_var(--ease-out)_both] grid-cols-1 items-center gap-12 px-[var(--gutter)] pb-14 pt-[72px] md:grid-cols-[1.05fr_0.95fr]">
       <div>
-        <div className="font-mono text-[length:var(--text-eyebrow)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
+        <div className="font-mono text-[length:var(--text-eyebrow)] tracking-[var(--tracking-eyebrow)] text-text-muted">
           Viajes en grupo · 3 ciudades
         </div>
         <h1 className="mt-3 text-balance font-display text-[length:clamp(2.4rem,5vw,3.4rem)] font-bold leading-[var(--leading-tight)] tracking-[var(--tracking-display)]">
