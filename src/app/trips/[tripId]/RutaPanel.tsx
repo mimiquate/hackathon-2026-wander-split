@@ -18,6 +18,7 @@ import {
   updateStopNightsAction,
   reorderStopsAction,
   cycleStopStatusAction,
+  setLegTransportAction,
   getStopsAction,
 } from "./stops/actions";
 
@@ -209,6 +210,22 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
     setStops(updated);
   }
 
+  async function handleSetTransport(stopId: string, mode: string) {
+    setError(undefined);
+
+    const result = await setLegTransportAction(tripId, stopId, mode);
+    if (!result.ok) {
+      setError(result.formError);
+      return;
+    }
+
+    // Update local state with new transport mode
+    const updated = stops.map((s) =>
+      s.id === stopId ? { ...s, transportMode: mode } : s,
+    );
+    setStops(updated);
+  }
+
   function getStatusChipStyles(status: string) {
     switch (status) {
       case "thinking":
@@ -232,6 +249,21 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
         return "Confirmado";
       default:
         return status;
+    }
+  }
+
+  function getTransportLabel(mode: string | null) {
+    switch (mode) {
+      case "flight":
+        return "✈️ Avión";
+      case "train":
+        return "🚂 Tren";
+      case "rental_car":
+        return "🚗 Auto";
+      case null:
+        return "Cómo llego...";
+      default:
+        return mode;
     }
   }
 
@@ -480,6 +512,30 @@ export function RutaPanel({ tripId, tripStartDate }: RutaPanelProps) {
                     noche{stop.nights !== 1 ? "s" : ""}
                   </span>
                 </div>
+
+                {/* Transport selector between consecutive stops */}
+                {index < stops.length - 1 && (
+                  <div className="flex items-center gap-[var(--space-2)] mt-[var(--space-2)] mb-[var(--space-3)] ml-[var(--space-5)]">
+                    <div className="text-[length:var(--text-xs)] text-text-muted min-w-max">
+                      Llegada a {stops[index + 1].city}:
+                    </div>
+                    <select
+                      value={stops[index + 1].transportMode || ""}
+                      onChange={(e) => handleSetTransport(stops[index + 1].id, e.target.value)}
+                      className={[
+                        "px-[var(--space-2)] py-1 rounded-sm border border-border-primary",
+                        "bg-surface text-[length:var(--text-sm)] text-text",
+                        "hover:bg-surface-secondary transition-colors",
+                        FOCUS_RING,
+                      ].join(" ")}
+                    >
+                      <option value="">Cómo llego...</option>
+                      <option value="flight">✈️ Avión</option>
+                      <option value="train">🚂 Tren</option>
+                      <option value="rental_car">🚗 Auto</option>
+                    </select>
+                  </div>
+                )}
               </div>
             ))}
           </div>
