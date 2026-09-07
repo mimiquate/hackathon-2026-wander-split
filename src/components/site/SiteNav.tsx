@@ -10,7 +10,7 @@ const NAV_LINKS = [
 
 export function SiteNav() {
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between gap-6 border-b border-border bg-bg px-10 py-5">
+    <header className="sticky top-0 z-10 flex h-[72px] items-center justify-between gap-6 border-b border-border bg-bg px-[var(--gutter)]">
       <span className="font-display text-[1.3rem] font-bold tracking-[-0.02em] text-primary">
         wonderSplit
       </span>
@@ -28,7 +28,7 @@ export function SiteNav() {
           </a>
         ))}
       </nav>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-[var(--space-3)]">
         <Button variant="ghost" size="sm" className="max-md:min-h-tap-min">
           Ingresar
         </Button>

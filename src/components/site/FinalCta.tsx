@@ -1,23 +1,42 @@
 import { Button } from "@/components/core";
 
-// Copy reused verbatim from the hero — the design source has no dedicated
-// final-CTA copy of its own (confirmed against Landing.jsx, the Ruta
-// Terracota one-pager, and the voice guidelines), and reusing the hero's
-// already-established button label and reassurance line avoids inventing
-// new marketing copy.
+const REASSURANCES = [
+  "Sin límite de viajeros",
+  "Sin tarjeta",
+  "Desde el navegador, sin instalar nada",
+];
+
 export function FinalCta() {
   return (
     <section
       id="precios"
-      className="scroll-mt-20 border-t border-border px-10 py-[var(--section-gap)]"
+      className="scroll-mt-20 border-t border-border bg-surface px-[var(--gutter)] py-[var(--section-gap)]"
     >
-      <div className="mx-auto flex max-w-[var(--page-max)] flex-col items-center gap-4 text-center">
-        <Button size="lg" iconRight="arrow-right">
-          Armar un viaje
-        </Button>
-        <p className="text-[length:var(--text-sm)] text-text-muted">
-          Menos planillas, menos “¿quién me debía?”, más viaje.
+      <div className="mx-auto max-w-[620px] text-center">
+        <div className="font-mono text-[length:var(--text-eyebrow)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
+          Beta abierta
+        </div>
+        <h2 className="mt-3 text-balance font-display text-[length:var(--text-xl)] font-bold leading-[var(--leading-tight)] tracking-[var(--tracking-display)]">
+          ¿Tenés un viaje en el grupo?
+        </h2>
+        <p className="mt-[14px] text-text-muted">
+          Armalo en dos minutos y compartí el link con tu banda.
         </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-[10px]">
+          <Button size="lg" iconRight="arrow-right">
+            Armá tu primer viaje
+          </Button>
+        </div>
+        <div className="mt-[22px] flex flex-wrap justify-center gap-[18px] font-mono text-[length:var(--text-xs)] text-text-muted">
+          {REASSURANCES.flatMap((text, i) => [
+            i > 0 ? (
+              <span key={`dot-${i}`} aria-hidden="true">
+                ·
+              </span>
+            ) : null,
+            <span key={text}>{text}</span>,
+          ])}
+        </div>
       </div>
     </section>
   );
