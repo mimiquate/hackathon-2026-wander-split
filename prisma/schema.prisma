@@ -106,6 +106,7 @@ model TripMembership {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   claimedReservation TripInviteReservation?
+  notes              TripNote[]
 
   @@unique([tripId, userId])
   @@index([userId])
@@ -160,6 +161,7 @@ model TripStop {
 
   trip   Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
   places TripPlace[]
+  notes  TripNote[]
 
   @@unique([tripId, position])
   @@index([tripId])
@@ -183,4 +185,25 @@ model TripPlace {
   stop TripStop @relation(fields: [stopId], references: [id], onDelete: Cascade)
 
   @@index([stopId])
+}
+
+// A free-text note left for the group about a stop's city — a heads-up,
+// reminder, or warning ("the Airbnb has four unlit steps"). Belongs to the
+// stop (a city instance), not a bare city name, for the same reason as
+// TripPlace: two visits to the same city, if that's ever possible, shouldn't
+// share or leak each other's notes (#23). The author is the poster's
+// TripMembership, matching how every other per-trip identity works — not
+// the account-level User, so the note shows the trip-specific name/color.
+model TripNote {
+  id           String   @id @default(cuid())
+  stopId       String
+  membershipId String
+  text         String
+  createdAt    DateTime @default(now())
+
+  stop       TripStop       @relation(fields: [stopId], references: [id], onDelete: Cascade)
+  membership TripMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@index([stopId])
+  @@index([membershipId])
 }
