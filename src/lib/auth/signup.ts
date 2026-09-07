@@ -4,7 +4,7 @@ import { hashPassword } from "@/lib/password";
 import { createAndSendVerificationCode } from "@/lib/auth/verification";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD_LENGTH = 8;
+export const MIN_PASSWORD_LENGTH = 8;
 
 export interface SignupInput {
   email: string;
