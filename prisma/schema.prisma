@@ -160,8 +160,29 @@ model TripStop {
   transportMode String?
   createdAt     DateTime @default(now())
 
-  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  trip   Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  places TripPlace[]
 
   @@unique([tripId, position])
   @@index([tripId])
+}
+
+// A place marked in a stop's city — a hotel, excursion, landmark, or
+// anything else the group wants pinned there. Belongs to the stop (a city
+// instance), not a bare city name, so two visits to the same city (if that's
+// ever possible) never share or leak each other's places (#10).
+model TripPlace {
+  id        String   @id @default(cuid())
+  stopId    String
+  label     String
+  // "alojamiento" | "plan" | "idea" | "transporte" — see PLACE_KINDS in
+  // src/lib/trips/constants.ts.
+  kind      String
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+
+  stop TripStop @relation(fields: [stopId], references: [id], onDelete: Cascade)
+
+  @@index([stopId])
 }
