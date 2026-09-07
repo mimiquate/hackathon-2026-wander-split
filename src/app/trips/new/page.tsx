@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Nuevo viaje — wonderSplit" };
 
 export default async function NewTripPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`/login?next=${encodeURIComponent("/trips/new")}`);
 
   return (
     <div className="mx-auto flex min-h-svh max-w-[420px] flex-col justify-center gap-[var(--space-7)] px-[var(--gutter)] py-[var(--space-9)]">

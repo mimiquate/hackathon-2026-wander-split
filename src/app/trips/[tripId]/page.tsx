@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Card } from "@/components/core/Card";
+import { AvatarGroup } from "@/components/trip/AvatarGroup";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { findTripMembership } from "@/lib/trips/membership";
 import { getTripInvitePanel } from "@/lib/trips/invite";
-import { InvitePanel } from "./InvitePanel";
+import { crewCountLabel } from "@/lib/trips/format";
+import { CompartirDialog } from "./CompartirDialog";
 
-export const metadata: Metadata = { title: "Invitá a tu grupo — wonderSplit" };
+export const metadata: Metadata = { title: "Tu viaje — wonderSplit" };
 
 // Same host-detection the secure-cookie check in cookies.ts uses: Vercel
 // production is always https, local dev is always http, so NODE_ENV is a
@@ -21,12 +23,16 @@ async function buildInviteUrl(token: string) {
 
 export default async function TripPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ tripId: string }>;
+  searchParams: Promise<{ invite?: string }>;
 }) {
   const { tripId } = await params;
+  const { invite: inviteParam } = await searchParams;
+
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/trips/${tripId}`)}`);
 
   const membership = await findTripMembership(tripId, user.id);
   if (!membership) notFound();
@@ -41,18 +47,32 @@ export default async function TripPage({
       <Card padding="lg" className="flex flex-col gap-[var(--space-6)]">
         <div className="flex flex-col gap-[var(--space-2)]">
           <span className="font-mono text-[length:var(--text-eyebrow)] tracking-[var(--tracking-eyebrow)] uppercase text-text-muted">
-            {panel.name}
+            Tu viaje
           </span>
           <h1 className="m-0 text-balance font-display text-[length:var(--text-lg)] font-bold tracking-[-0.01em]">
-            Invitá a tu grupo
+            {panel.name}
           </h1>
         </div>
-        <InvitePanel
-          tripId={tripId}
-          inviteUrl={inviteUrl}
-          members={panel.members}
-          initialPendingReservations={panel.pendingReservations}
-        />
+        <div className="flex items-center justify-between gap-[var(--space-4)]">
+          <div className="flex items-center gap-[var(--space-3)]">
+            <AvatarGroup
+              people={panel.members.map((member) => ({
+                name: member.displayName,
+                colorIndex: member.colorIndex,
+              }))}
+            />
+            <span className="text-[length:var(--text-sm)] text-text-muted">
+              {crewCountLabel(panel.members.length)}
+            </span>
+          </div>
+          <CompartirDialog
+            tripId={tripId}
+            inviteUrl={inviteUrl}
+            members={panel.members}
+            initialPendingReservations={panel.pendingReservations}
+            defaultOpen={inviteParam === "1"}
+          />
+        </div>
       </Card>
     </div>
   );

@@ -15,7 +15,7 @@ export async function createTripAction(
 ): Promise<CreateTripFormState> {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login");
+    redirect(`/login?next=${encodeURIComponent("/trips/new")}`);
   }
 
   const name = String(formData.get("name") ?? "");
@@ -28,5 +28,5 @@ export async function createTripAction(
     return { fieldErrors: result.fieldErrors, formError: result.formError };
   }
 
-  redirect(`/trips/${result.tripId}`);
+  redirect(`/trips/${result.tripId}?invite=1`);
 }
