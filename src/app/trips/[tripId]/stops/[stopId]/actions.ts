@@ -21,6 +21,12 @@ import {
   type RemoveVoucherFileResult,
   type VoucherFileData,
 } from "@/lib/trips/vouchers";
+import {
+  createExpense,
+  updateExpense,
+  type CreateExpenseResult,
+  type UpdateExpenseResult,
+} from "@/lib/trips/expenses";
 
 async function assertStopAccess(tripId: string, stopId: string): Promise<TripStopData | null> {
   const user = await getCurrentUser();
@@ -203,6 +209,53 @@ export async function removeVoucherFileAction(
   }
 
   const result = await removeVoucherFile(bookingId, voucherId);
+  if (result.ok) {
+    revalidatePath(`/trips/${tripId}/stops/${stopId}`);
+  }
+  return result;
+}
+
+// Phase 3's dialog only ever touches an expense's non-adjustment fields —
+// adjustedAmount gets its own action in Phase 4.
+export interface ExpenseActionInput {
+  label: string;
+  category: string;
+  paymentMethod: string;
+  originalAmount: number;
+  originalCurrency: string;
+  paidById: string;
+  userIds: string[];
+}
+
+export async function createExpenseAction(
+  tripId: string,
+  stopId: string,
+  input: ExpenseActionInput,
+): Promise<CreateExpenseResult> {
+  const stop = await assertStopAccess(tripId, stopId);
+  if (!stop) {
+    return { ok: false, formError: "No tenés acceso a esta parada." };
+  }
+
+  const result = await createExpense({ stopId, ...input });
+  if (result.ok) {
+    revalidatePath(`/trips/${tripId}/stops/${stopId}`);
+  }
+  return result;
+}
+
+export async function updateExpenseAction(
+  tripId: string,
+  stopId: string,
+  expenseId: string,
+  input: ExpenseActionInput,
+): Promise<UpdateExpenseResult> {
+  const stop = await assertStopAccess(tripId, stopId);
+  if (!stop) {
+    return { ok: false, formError: "No tenés acceso a esta parada." };
+  }
+
+  const result = await updateExpense({ stopId, expenseId, ...input });
   if (result.ok) {
     revalidatePath(`/trips/${tripId}/stops/${stopId}`);
   }

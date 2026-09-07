@@ -27,19 +27,16 @@ export interface CityDetailTabsProps {
   totalStops: number;
   initialPlaces: TripPlaceData[];
   initialBookings: BookingDetail[];
-  // Not lifted into state (unlike places/bookings) — Gastos is read-only
-  // until Phase 3/4 add the dialog and adjustment flow.
-  expenses: ExpenseDetail[];
+  initialExpenses: ExpenseDetail[];
   tripMembers: TripMemberSummary[];
   tripCurrency: string;
 }
 
 /**
  * Owns which of the 4 tabs is showing. Plan, Reservas, and Gastos are all
- * real now (#10, #12/#13, #14). Plan's and Reservas' lists are lifted here
- * so their tab counts stay in sync with adds/edits without a reload;
- * Gastos reads straight from its server-fetched prop since nothing
- * mutates it yet (that starts in #14's Phase 3).
+ * real now (#10, #12/#13, #14) and each needs its list lifted here so the
+ * "Plan · N" / "Reservas · N" / "Gastos · N" tab counts stay in sync with
+ * adds/edits without a reload.
  */
 export function CityDetailTabs({
   tripId,
@@ -52,13 +49,14 @@ export function CityDetailTabs({
   totalStops,
   initialPlaces,
   initialBookings,
-  expenses,
+  initialExpenses,
   tripMembers,
   tripCurrency,
 }: CityDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<CityDetailTab>("plan");
   const [places, setPlaces] = useState(initialPlaces);
   const [bookings, setBookings] = useState(initialBookings);
+  const [expenses, setExpenses] = useState(initialExpenses);
 
   const realTabs: { key: CityDetailTab; label: string; count: number }[] = [
     { key: "plan", label: "Plan", count: places.length },
@@ -118,7 +116,14 @@ export function CityDetailTabs({
           tripMembers={tripMembers}
         />
       ) : (
-        <GastosTabContent expenses={expenses} tripMembers={tripMembers} tripCurrency={tripCurrency} />
+        <GastosTabContent
+          tripId={tripId}
+          stopId={stopId}
+          expenses={expenses}
+          onExpensesChange={setExpenses}
+          tripMembers={tripMembers}
+          tripCurrency={tripCurrency}
+        />
       )}
     </div>
   );

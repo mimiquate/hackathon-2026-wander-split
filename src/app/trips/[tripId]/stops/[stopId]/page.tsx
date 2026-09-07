@@ -70,7 +70,7 @@ export default async function StopPage({
         totalStops={range.totalStops}
         initialPlaces={places}
         initialBookings={bookings}
-        expenses={expenses}
+        initialExpenses={expenses}
         tripMembers={tripMembers}
         tripCurrency={editPanel.currency}
       />
