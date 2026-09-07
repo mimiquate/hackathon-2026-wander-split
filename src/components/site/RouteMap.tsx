@@ -15,6 +15,15 @@ import type { Topology } from "topojson-specification";
 const ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json";
 const VISITED_COUNTRIES = new Set(["Spain", "Portugal", "France"]);
 
+// Same modes/glyphs #8's own transport picker uses (RutaPanel's
+// getTransportLabel) — kept in sync by hand since that one also carries a
+// text label the map doesn't need.
+const TRANSPORT_ICONS: Record<string, string> = {
+  flight: "✈️",
+  train: "🚂",
+  rental_car: "🚗",
+};
+
 // The landing page's own demo route — used whenever no real `stops` prop is
 // given (e.g. RouteSection), so that call site keeps working unchanged.
 const DEMO_STOPS: { name: string; coords: [number, number]; anchor: "start" | "end" }[] = [
@@ -28,6 +37,9 @@ export interface RouteMapStop {
   city: string;
   latitude: number;
   longitude: number;
+  /** How this stop was reached from the previous one — null/omitted legs
+   * draw as a plain dashed line, no icon. */
+  transportMode?: string | null;
 }
 
 export interface RouteMapProps {
@@ -48,19 +60,38 @@ export function RouteMap({ stops, numbered = false, interactive = false, onStopC
   const svgRef = useRef<SVGSVGElement>(null);
   const [countries, setCountries] = useState<FeatureCollection | null>(null);
 
-  const points: { id: string; name: string; coords: [number, number]; anchor: "start" | "end" }[] =
-    useMemo(
-      () =>
-        stops && stops.length > 0
-          ? stops.map((s, i) => ({
-              id: s.id,
-              name: s.city,
-              coords: [s.longitude, s.latitude] as [number, number],
-              anchor: (i % 2 === 0 ? "start" : "end") as "start" | "end",
-            }))
-          : DEMO_STOPS.map((s, i) => ({ id: String(i), ...s })),
-      [stops],
-    );
+  const points: {
+    id: string;
+    name: string;
+    coords: [number, number];
+    anchor: "start" | "end";
+    transportMode?: string | null;
+  }[] = useMemo(
+    () =>
+      stops && stops.length > 0
+        ? stops.map((s, i) => ({
+            id: s.id,
+            name: s.city,
+            coords: [s.longitude, s.latitude] as [number, number],
+            anchor: (i % 2 === 0 ? "start" : "end") as "start" | "end",
+            transportMode: s.transportMode,
+          }))
+        : DEMO_STOPS.map((s, i) => ({ id: String(i), ...s })),
+    [stops],
+  );
+
+  // One entry per connector segment — the mode is stored as "how I arrived
+  // here" on the later stop of the pair, matching #8's own data model.
+  const legs = useMemo(
+    () =>
+      points.slice(1).map((to, i) => ({
+        id: `${points[i].id}-${to.id}`,
+        from: points[i],
+        to,
+        transportMode: to.transportMode,
+      })),
+    [points],
+  );
 
   const routeLine: Feature<LineString> = useMemo(
     () => ({
@@ -73,6 +104,27 @@ export function RouteMap({ stops, numbered = false, interactive = false, onStopC
     }),
     [points],
   );
+
+  // geoMercator().fitExtent degenerates on a single-point "line" (a
+  // zero-area bounding box), so a lone stop gets its own small padded box
+  // to fit against instead of the real (pointless) route line.
+  const extentGeometry: Feature<LineString> = useMemo(() => {
+    if (points.length !== 1) return routeLine;
+
+    const [lon, lat] = points[0].coords;
+    const pad = 2; // degrees — enough to give a lone marker sane breathing room
+    return {
+      type: "Feature",
+      properties: null,
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [lon - pad, lat - pad],
+          [lon + pad, lat + pad],
+        ],
+      },
+    };
+  }, [points, routeLine]);
 
   const routeLabel =
     points.length === 1
@@ -118,7 +170,7 @@ export function RouteMap({ stops, numbered = false, interactive = false, onStopC
           [110, 52],
           [width - 110, height - 44],
         ],
-        routeLine,
+        extentGeometry,
       );
       const path = geoPath(projection);
 
@@ -142,6 +194,9 @@ export function RouteMap({ stops, numbered = false, interactive = false, onStopC
       const routeLayer = svg.select<SVGGElement>("g.route").empty()
         ? svg.append("g").attr("class", "route")
         : svg.select<SVGGElement>("g.route");
+      const transportLayer = svg.select<SVGGElement>("g.transport").empty()
+        ? svg.append("g").attr("class", "transport")
+        : svg.select<SVGGElement>("g.transport");
       const stopsLayer = svg.select<SVGGElement>("g.stops").empty()
         ? svg.append("g").attr("class", "stops")
         : svg.select<SVGGElement>("g.stops");
@@ -190,6 +245,42 @@ export function RouteMap({ stops, numbered = false, interactive = false, onStopC
         .attr("stroke-width", 3)
         .attr("stroke-linecap", "round")
         .attr("stroke-dasharray", "1 7");
+
+      const legsWithIcon = legs.filter(
+        (leg) => leg.transportMode && TRANSPORT_ICONS[leg.transportMode],
+      );
+
+      const legGroups = transportLayer
+        .selectAll<SVGGElement, (typeof legsWithIcon)[number]>("g.leg-icon")
+        .data(legsWithIcon, (d) => d.id)
+        .join((enter) => {
+          const g = enter.append("g").attr("class", "leg-icon");
+          g.append("circle");
+          g.append("text");
+          return g;
+        });
+
+      legGroups.attr("transform", (d) => {
+        const from = projection(d.from.coords);
+        const to = projection(d.to.coords);
+        const x = ((from?.[0] ?? 0) + (to?.[0] ?? 0)) / 2;
+        const y = ((from?.[1] ?? 0) + (to?.[1] ?? 0)) / 2;
+        return `translate(${x}, ${y})`;
+      });
+
+      legGroups
+        .select("circle")
+        .attr("r", 11)
+        .attr("fill", "var(--surface)")
+        .attr("stroke", "var(--border-strong)")
+        .attr("stroke-width", 1.5);
+
+      legGroups
+        .select("text")
+        .attr("y", 5)
+        .attr("text-anchor", "middle")
+        .attr("font-size", 13)
+        .text((d) => TRANSPORT_ICONS[d.transportMode as string]);
 
       const stopGroups = stopsLayer
         .selectAll<SVGGElement, (typeof points)[number]>("g.stop")
@@ -257,7 +348,18 @@ export function RouteMap({ stops, numbered = false, interactive = false, onStopC
     const observer = new ResizeObserver(draw);
     observer.observe(container);
     return () => observer.disconnect();
-  }, [countries, points, routeLine, routeLabel, numbered, interactive, onStopClick, stops]);
+  }, [
+    countries,
+    points,
+    legs,
+    routeLine,
+    extentGeometry,
+    routeLabel,
+    numbered,
+    interactive,
+    onStopClick,
+    stops,
+  ]);
 
   return (
     <div ref={containerRef} className="h-[320px] w-full">
