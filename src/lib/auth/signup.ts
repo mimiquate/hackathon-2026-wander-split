@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
+import { EMAIL_PATTERN, normalizeEmail } from "@/lib/email";
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
 
 export interface SignupInput {
@@ -24,7 +24,7 @@ export async function signupCore({
   password,
   termsAccepted,
 }: SignupInput): Promise<SignupResult> {
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
 
   if (!EMAIL_PATTERN.test(normalizedEmail)) {
     return { ok: false, fieldErrors: { email: "Ese correo no parece válido." } };

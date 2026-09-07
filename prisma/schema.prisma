@@ -20,6 +20,7 @@ model User {
   emailVerificationCodes EmailVerificationCode[]
   passwordResetTokens    PasswordResetToken[]
   loginAttempts          LoginAttempt[]
+  tripMemberships        TripMembership[]
 }
 
 // Shape required by @auth/prisma-adapter's AdapterSession contract.
@@ -66,4 +67,76 @@ model LoginAttempt {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, succeeded, createdAt])
+}
+
+model Trip {
+  id   String @id @default(cuid())
+  name String
+  // A calendar date, not an instant — a trip starts on a day. @db.Date keeps
+  // Postgres from storing a time component that a non-UTC server would shift
+  // into the previous/next day. There is deliberately no endDate column: it's
+  // derived from this date plus the sum of every stop's nights (#8) and is
+  // undefined for a trip with no stops yet.
+  startDate DateTime @db.Date
+  // "USD" | "EUR" — see TRIP_CURRENCIES in src/lib/trips/constants.ts.
+  currency  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships  TripMembership[]
+  invite       TripInvite?
+  reservations TripInviteReservation[]
+}
+
+model TripMembership {
+  id     String @id @default(cuid())
+  tripId String
+  userId String
+  // "admin" (the creator) | "participant" — see TRIP_ROLES in src/lib/trips/constants.ts.
+  role   String
+  // Per-trip identity, deliberately separate from the account's own name and
+  // avatar color — the same person can be "Ana" here and "Ana Pérez"
+  // elsewhere, or a different color entirely on a different trip.
+  displayName String
+  colorIndex  Int
+  createdAt   DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  claimedReservation TripInviteReservation?
+
+  @@unique([tripId, userId])
+  @@index([userId])
+}
+
+// The trip's single shareable link, one row per trip — enforced by the plain
+// unique index on tripId, so "one link per trip" is a DB constraint, not just
+// a convention in code. The token is stored in plaintext (unlike
+// PasswordResetToken's hash) because the invite panel has to redisplay the
+// same link every time it's reopened (Phase 5's "Compartir" dialog).
+model TripInvite {
+  id        String   @id @default(cuid())
+  tripId    String   @unique
+  token     String   @unique
+  createdAt DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+// A pending crew slot reserved by email — not access control, and nothing is
+// ever sent to the address. It only tracks who's expected, until that person
+// joins through the trip's link and their account email claims this row.
+model TripInviteReservation {
+  id                    String    @id @default(cuid())
+  tripId                String
+  email                 String
+  claimedAt             DateTime?
+  claimedByMembershipId String?   @unique
+  createdAt             DateTime  @default(now())
+
+  trip                Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  claimedByMembership TripMembership? @relation(fields: [claimedByMembershipId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, email])
 }
