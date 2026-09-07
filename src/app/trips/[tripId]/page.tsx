@@ -6,8 +6,10 @@ import { AvatarGroup } from "@/components/trip/AvatarGroup";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { findTripMembership } from "@/lib/trips/membership";
 import { getTripInvitePanel } from "@/lib/trips/invite";
+import { getTripEditPanel } from "@/lib/trips/update";
 import { crewCountLabel } from "@/lib/trips/format";
 import { CompartirDialog } from "./CompartirDialog";
+import { DatosViajeDialog } from "./DatosViajeDialog";
 
 export const metadata: Metadata = { title: "Tu viaje — wonderSplit" };
 
@@ -40,19 +42,20 @@ export default async function TripPage({
   const panel = await getTripInvitePanel(tripId);
   if (!panel) notFound();
 
+  const editPanel = await getTripEditPanel(tripId);
+  if (!editPanel) notFound();
+
   const inviteUrl = await buildInviteUrl(panel.inviteToken);
 
   return (
     <div className="mx-auto flex min-h-svh max-w-[480px] flex-col justify-center gap-[var(--space-7)] px-[var(--gutter)] py-[var(--space-9)]">
       <Card padding="lg" className="flex flex-col gap-[var(--space-6)]">
-        <div className="flex flex-col gap-[var(--space-2)]">
-          <span className="font-mono text-[length:var(--text-eyebrow)] tracking-[var(--tracking-eyebrow)] uppercase text-text-muted">
-            Tu viaje
-          </span>
-          <h1 className="m-0 text-balance font-display text-[length:var(--text-lg)] font-bold tracking-[-0.01em]">
-            {panel.name}
-          </h1>
-        </div>
+        <DatosViajeDialog
+          tripId={tripId}
+          initialName={editPanel.name}
+          initialStartDate={editPanel.startDate}
+          canEditStartDate={editPanel.canEditStartDate}
+        />
         <div className="flex items-center justify-between gap-[var(--space-4)]">
           <div className="flex items-center gap-[var(--space-3)]">
             <AvatarGroup

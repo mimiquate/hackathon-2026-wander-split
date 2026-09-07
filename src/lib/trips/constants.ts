@@ -17,3 +17,10 @@ export const DEFAULT_TRIP_CURRENCY: TripCurrency = "USD";
 export function isTripCurrency(value: string): value is TripCurrency {
   return (TRIP_CURRENCIES as readonly string[]).includes(value);
 }
+
+// Lives here rather than update.ts (which imports @/lib/prisma) because
+// DatosViajeDialog is a client component that needs this exact string for
+// its pre-submit disabled-hint — importing it from update.ts would drag
+// Prisma's node:*-dependent driver into the browser bundle.
+export const START_DATE_LOCKED_MESSAGE =
+  "Ya hay una reserva confirmada en este viaje, así que no se puede cambiar la fecha de inicio.";
