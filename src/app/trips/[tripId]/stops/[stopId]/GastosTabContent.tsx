@@ -10,6 +10,8 @@ import { formatMoney } from "@/lib/trips/format";
 import { EXPENSE_CATEGORY_LABELS, PAYMENT_METHOD_LABELS, type ExpenseCategory, type PaymentMethod } from "@/lib/trips/constants";
 import type { ExpenseDetail } from "@/lib/trips/expenses";
 import type { TripMemberSummary } from "@/lib/trips/membership";
+import { removeExpenseAction } from "./actions";
+import { AdjustAmountControl } from "./AdjustAmountControl";
 import { AgregarGastoDialog } from "./AgregarGastoDialog";
 
 export interface GastosTabContentProps {
@@ -40,8 +42,9 @@ function displayAmount(expense: ExpenseDetail, tripCurrency: string): string {
 /**
  * The Gastos tab: real expenses (#14), replacing #10's inert placeholder.
  * "Agregar gasto" adds a new one; each expanded expense's "Editar" reopens
- * the same dialog pre-filled (non-adjustment fields only). Phase 4 adds
- * the adjustment flow and removal.
+ * the same dialog pre-filled (non-adjustment fields only), its adjustment
+ * control sets/changes the adjusted amount, and "Eliminar gasto" removes
+ * it outright — no confirmation prompt, matching #10/#12/#13's pattern.
  */
 export function GastosTabContent({
   tripId,
@@ -61,6 +64,24 @@ export function GastosTabContent({
     );
     setSelectedId(expense.id);
     setDialogExpense(null);
+  }
+
+  function handleAdjusted(expenseId: string, adjustedAmount: number) {
+    onExpensesChange(
+      expenses.map((expense) => (expense.id === expenseId ? { ...expense, adjustedAmount } : expense)),
+    );
+  }
+
+  async function handleRemove(expenseId: string) {
+    const previous = expenses;
+    onExpensesChange(expenses.filter((expense) => expense.id !== expenseId));
+    if (selectedId === expenseId) setSelectedId(null);
+
+    const result = await removeExpenseAction(tripId, stopId, expenseId);
+    if (!result.ok) {
+      // Put it back — the delete didn't actually happen server-side.
+      onExpensesChange(previous);
+    }
   }
 
   return (
@@ -140,18 +161,6 @@ export function GastosTabContent({
                       </div>
                       <div className="flex flex-col gap-[var(--space-1)]">
                         <span className="font-mono text-[length:var(--text-xs)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
-                          Monto ajustado
-                        </span>
-                        {expense.adjustedAmount == null ? (
-                          <StatusChip state="urgent">Pendiente de ajuste</StatusChip>
-                        ) : (
-                          <span className="text-[length:var(--text-sm)] text-text">
-                            {formatMoney(expense.adjustedAmount, tripCurrency)}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-[var(--space-1)]">
-                        <span className="font-mono text-[length:var(--text-xs)] uppercase tracking-[var(--tracking-eyebrow)] text-text-muted">
                           Quién pagó
                         </span>
                         <span className="text-[length:var(--text-sm)] text-text">
@@ -176,17 +185,37 @@ export function GastosTabContent({
                       />
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setDialogExpense(expense)}
-                      className={[
-                        "inline-flex items-center gap-[var(--space-2)] self-start rounded-sm text-[length:var(--text-sm)] font-semibold text-text hover:text-primary max-md:min-h-tap-min",
-                        FOCUS_RING,
-                      ].join(" ")}
-                    >
-                      <Icon name="pencil" size={14} />
-                      Editar
-                    </button>
+                    <AdjustAmountControl
+                      tripId={tripId}
+                      stopId={stopId}
+                      expense={expense}
+                      onAdjusted={(adjustedAmount) => handleAdjusted(expense.id, adjustedAmount)}
+                    />
+
+                    <div className="flex flex-wrap gap-[var(--space-5)]">
+                      <button
+                        type="button"
+                        onClick={() => setDialogExpense(expense)}
+                        className={[
+                          "inline-flex items-center gap-[var(--space-2)] rounded-sm text-[length:var(--text-sm)] font-semibold text-text hover:text-primary max-md:min-h-tap-min",
+                          FOCUS_RING,
+                        ].join(" ")}
+                      >
+                        <Icon name="pencil" size={14} />
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(expense.id)}
+                        className={[
+                          "inline-flex items-center gap-[var(--space-2)] rounded-sm text-[length:var(--text-sm)] font-semibold text-text hover:text-alert max-md:min-h-tap-min",
+                          FOCUS_RING,
+                        ].join(" ")}
+                      >
+                        <Icon name="trash-2" size={14} />
+                        Eliminar gasto
+                      </button>
+                    </div>
                   </div>
                 ) : null}
               </li>

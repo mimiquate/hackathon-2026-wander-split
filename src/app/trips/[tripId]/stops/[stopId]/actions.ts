@@ -23,8 +23,10 @@ import {
 } from "@/lib/trips/vouchers";
 import {
   createExpense,
+  removeExpense,
   updateExpense,
   type CreateExpenseResult,
+  type RemoveExpenseResult,
   type UpdateExpenseResult,
 } from "@/lib/trips/expenses";
 
@@ -256,6 +258,44 @@ export async function updateExpenseAction(
   }
 
   const result = await updateExpense({ stopId, expenseId, ...input });
+  if (result.ok) {
+    revalidatePath(`/trips/${tripId}/stops/${stopId}`);
+  }
+  return result;
+}
+
+/** Sets or changes just the adjusted amount — the original amount/currency
+ * and every other field stay untouched, matching updateExpense's
+ * only-passed-fields-change contract. */
+export async function adjustExpenseAmountAction(
+  tripId: string,
+  stopId: string,
+  expenseId: string,
+  adjustedAmount: number,
+): Promise<UpdateExpenseResult> {
+  const stop = await assertStopAccess(tripId, stopId);
+  if (!stop) {
+    return { ok: false, formError: "No tenés acceso a esta parada." };
+  }
+
+  const result = await updateExpense({ stopId, expenseId, adjustedAmount });
+  if (result.ok) {
+    revalidatePath(`/trips/${tripId}/stops/${stopId}`);
+  }
+  return result;
+}
+
+export async function removeExpenseAction(
+  tripId: string,
+  stopId: string,
+  expenseId: string,
+): Promise<RemoveExpenseResult> {
+  const stop = await assertStopAccess(tripId, stopId);
+  if (!stop) {
+    return { ok: false, formError: "No tenés acceso a esta parada." };
+  }
+
+  const result = await removeExpense(stopId, expenseId);
   if (result.ok) {
     revalidatePath(`/trips/${tripId}/stops/${stopId}`);
   }
