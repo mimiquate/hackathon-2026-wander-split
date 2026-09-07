@@ -6,6 +6,7 @@ import { findTripMembership } from "@/lib/trips/membership";
 import { getTripEditPanel } from "@/lib/trips/update";
 import { computeStopDateRange, getStopsForTrip } from "@/lib/trips/stops";
 import { getPlacesForStop } from "@/lib/trips/places";
+import { getNotesForStop } from "@/lib/trips/notes";
 import { formatCalendarDate, parseCalendarDate } from "@/lib/trips/dates";
 import { BackButton } from "./BackButton";
 import { PlanTab } from "./PlanTab";
@@ -41,6 +42,7 @@ export default async function StopPage({
   if (!range) notFound();
 
   const places = await getPlacesForStop(stopId);
+  const notes = await getNotesForStop(stopId);
 
   return (
     <div className="mx-auto flex min-h-svh max-w-[480px] flex-col gap-[var(--space-6)] px-[var(--gutter)] py-[var(--space-6)]">
@@ -64,6 +66,7 @@ export default async function StopPage({
         position={range.position}
         totalStops={range.totalStops}
         initialPlaces={places}
+        initialNotes={notes.map((note) => ({ ...note, createdAt: note.createdAt.toISOString() }))}
       />
     </div>
   );

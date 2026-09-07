@@ -39,3 +39,32 @@ const SHORT_MONTHS = [
 export function formatShortDate(date: Date): string {
   return `${date.getUTCDate()} ${SHORT_MONTHS[date.getUTCMonth()]}`;
 }
+
+const MINUTE_MS = 60_000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+/**
+ * "recién" / "hace 4 horas" / "hace 2 días" — a human relative timestamp,
+ * computed at render time from a real `createdAt`, not a stored string
+ * (#23). Reads wall-clock time, unlike this file's other helpers, since
+ * it's timing a real instant rather than a calendar date.
+ */
+export function formatRelativeTime(date: Date, now: Date = new Date()): string {
+  const diffMs = Math.max(0, now.getTime() - date.getTime());
+
+  if (diffMs < MINUTE_MS) return "recién";
+
+  if (diffMs < HOUR_MS) {
+    const minutes = Math.floor(diffMs / MINUTE_MS);
+    return `hace ${minutes} minuto${minutes === 1 ? "" : "s"}`;
+  }
+
+  if (diffMs < DAY_MS) {
+    const hours = Math.floor(diffMs / HOUR_MS);
+    return `hace ${hours} hora${hours === 1 ? "" : "s"}`;
+  }
+
+  const days = Math.floor(diffMs / DAY_MS);
+  return `hace ${days} día${days === 1 ? "" : "s"}`;
+}

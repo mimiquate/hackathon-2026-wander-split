@@ -7,8 +7,9 @@ import { FOCUS_RING } from "@/lib/styles";
 import { formatShortDate, parseCalendarDate } from "@/lib/trips/dates";
 import { PLACE_KIND_LABELS, type PlaceKind } from "@/lib/trips/constants";
 import type { TripPlaceData } from "@/lib/trips/places";
-import { removePlaceAction } from "./actions";
+import { removePlaceAction, type TripNoteView } from "./actions";
 import { AddPlaceControl } from "./AddPlaceControl";
+import { NotasTab } from "./NotasTab";
 import { updateStopNightsAction } from "../actions";
 
 export interface PlanTabProps {
@@ -24,16 +25,21 @@ export interface PlanTabProps {
   position: number;
   totalStops: number;
   initialPlaces: TripPlaceData[];
+  initialNotes: TripNoteView[];
 }
 
-// Reservas/Gastos/Notas have no data source yet (#12/#13, #14-17, #23
+type TabKey = "plan" | "notas";
+
+// Reservas/Gastos have no data source yet (#12/#13 and #14-17
 // respectively) — inert placeholders, same treatment auth gave its inert
 // account-menu items. No count shown since there's nothing real to count.
 const INERT_TABS = [
   { key: "reservas", label: "Reservas" },
   { key: "gastos", label: "Gastos" },
-  { key: "notas", label: "Notas" },
 ] as const;
+
+const TAB_BUTTON_BASE =
+  "inline-flex min-h-[44px] items-center justify-center rounded-pill px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-sm)] font-semibold";
 
 /**
  * Owns everything this screen can change (nights, the marked-place list, and
@@ -50,10 +56,13 @@ export function PlanTab({
   position,
   totalStops,
   initialPlaces,
+  initialNotes,
 }: PlanTabProps) {
+  const [activeTab, setActiveTab] = useState<TabKey>("plan");
   const [nights, setNights] = useState(initialNights);
   const [nightsPending, setNightsPending] = useState(false);
   const [places, setPlaces] = useState(initialPlaces);
+  const [notes, setNotes] = useState(initialNotes);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const startDate = parseCalendarDate(stopStartDate);
@@ -86,22 +95,40 @@ export function PlanTab({
   return (
     <div className="flex flex-col gap-[var(--space-5)]">
       <div className="flex gap-[var(--space-2)]">
-        <span
-          aria-current="page"
-          className="inline-flex min-h-[44px] items-center justify-center rounded-pill bg-primary px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-sm)] font-semibold text-text-on-primary"
+        <button
+          type="button"
+          aria-current={activeTab === "plan" ? "page" : undefined}
+          onClick={() => setActiveTab("plan")}
+          className={[
+            TAB_BUTTON_BASE,
+            activeTab === "plan" ? "bg-primary text-text-on-primary" : "bg-surface-2 text-text-muted hover:text-text",
+            FOCUS_RING,
+          ].join(" ")}
         >
           Plan · {places.length}
-        </span>
+        </button>
         {INERT_TABS.map((tab) => (
           <button
             key={tab.key}
             type="button"
             disabled
-            className="inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-pill bg-surface-2 px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-sm)] font-semibold text-text-muted opacity-50"
+            className={[TAB_BUTTON_BASE, "cursor-not-allowed bg-surface-2 text-text-muted opacity-50"].join(" ")}
           >
             {tab.label}
           </button>
         ))}
+        <button
+          type="button"
+          aria-current={activeTab === "notas" ? "page" : undefined}
+          onClick={() => setActiveTab("notas")}
+          className={[
+            TAB_BUTTON_BASE,
+            activeTab === "notas" ? "bg-primary text-text-on-primary" : "bg-surface-2 text-text-muted hover:text-text",
+            FOCUS_RING,
+          ].join(" ")}
+        >
+          Notas · {notes.length}
+        </button>
       </div>
 
       {startDate && endDate ? (
@@ -111,104 +138,117 @@ export function PlanTab({
         </div>
       ) : null}
 
-      <div className="flex items-center justify-between gap-[var(--space-3)] rounded-2xl bg-surface-2 px-[var(--space-5)] py-[var(--space-4)]">
-        <span className="text-[length:var(--text-sm)] font-medium text-text">Noches en {cityName}</span>
-        <div className="flex items-center gap-[var(--space-3)]">
-          <button
-            type="button"
-            disabled={nightsPending || nights <= 0}
-            onClick={() => bumpNights(-1)}
-            aria-label="Restar una noche"
-            className={[
-              "inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface text-text disabled:cursor-not-allowed disabled:opacity-40",
-              FOCUS_RING,
-            ].join(" ")}
-          >
-            −
-          </button>
-          <span className="w-6 text-center text-[length:var(--text-sm)] font-semibold text-text">
-            {nights}
-          </span>
-          <button
-            type="button"
-            disabled={nightsPending}
-            onClick={() => bumpNights(1)}
-            aria-label="Sumar una noche"
-            className={[
-              "inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface text-text disabled:cursor-not-allowed disabled:opacity-40",
-              FOCUS_RING,
-            ].join(" ")}
-          >
-            +
-          </button>
-        </div>
-      </div>
-
-      <CityMap
-        city={city}
-        places={places.map((place) => ({
-          id: place.id,
-          label: place.label,
-          kind: place.kind,
-          latitude: place.latitude,
-          longitude: place.longitude,
-        }))}
-        highlightedId={highlightedId}
-        onSelectPlace={setHighlightedId}
-      />
-
-      <AddPlaceControl
-        tripId={tripId}
-        stopId={stopId}
-        onAdded={(place) => setPlaces((prev) => [...prev, place])}
-      />
-
-      {places.length === 0 ? (
-        <p className="m-0 text-center text-[length:var(--text-sm)] text-text-muted">
-          Todavía no marcaste ningún lugar en {cityName}.
-        </p>
+      {activeTab === "notas" ? (
+        <NotasTab
+          tripId={tripId}
+          stopId={stopId}
+          cityName={cityName}
+          notes={notes}
+          onAdded={(note) => setNotes((prev) => [...prev, note])}
+        />
       ) : (
-        <ul className="flex list-none flex-col gap-[var(--space-3)] p-0">
-          {places.map((place) => {
-            const isHighlighted = place.id === highlightedId;
-            return (
-              <li key={place.id}>
-                <div
-                  className={[
-                    "flex items-center gap-[var(--space-3)] rounded-lg px-[var(--space-4)] py-[var(--space-3)] transition-colors",
-                    isHighlighted ? "bg-primary text-text-on-primary" : "bg-surface-2 text-text",
-                  ].join(" ")}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setHighlightedId(place.id)}
-                    aria-pressed={isHighlighted}
-                    className={["flex flex-1 items-center justify-between gap-[var(--space-3)] text-left", FOCUS_RING].join(
-                      " ",
-                    )}
-                  >
-                    <span className="text-[length:var(--text-sm)] font-medium">{place.label}</span>
-                    <span className="font-mono text-[length:var(--text-xs)] uppercase tracking-[var(--tracking-eyebrow)] opacity-80">
-                      {PLACE_KIND_LABELS[place.kind as PlaceKind] ?? place.kind}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(place.id)}
-                    aria-label={`Eliminar ${place.label}`}
-                    className={[
-                      "rounded-sm opacity-70 hover:opacity-100",
-                      isHighlighted ? "text-text-on-primary" : "text-text-muted hover:text-alert",
-                      FOCUS_RING,
-                    ].join(" ")}
-                  >
-                    <Icon name="trash-2" size={16} />
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          <div className="flex items-center justify-between gap-[var(--space-3)] rounded-2xl bg-surface-2 px-[var(--space-5)] py-[var(--space-4)]">
+            <span className="text-[length:var(--text-sm)] font-medium text-text">Noches en {cityName}</span>
+            <div className="flex items-center gap-[var(--space-3)]">
+              <button
+                type="button"
+                disabled={nightsPending || nights <= 0}
+                onClick={() => bumpNights(-1)}
+                aria-label="Restar una noche"
+                className={[
+                  "inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface text-text disabled:cursor-not-allowed disabled:opacity-40",
+                  FOCUS_RING,
+                ].join(" ")}
+              >
+                −
+              </button>
+              <span className="w-6 text-center text-[length:var(--text-sm)] font-semibold text-text">
+                {nights}
+              </span>
+              <button
+                type="button"
+                disabled={nightsPending}
+                onClick={() => bumpNights(1)}
+                aria-label="Sumar una noche"
+                className={[
+                  "inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface text-text disabled:cursor-not-allowed disabled:opacity-40",
+                  FOCUS_RING,
+                ].join(" ")}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <CityMap
+            city={city}
+            places={places.map((place) => ({
+              id: place.id,
+              label: place.label,
+              kind: place.kind,
+              latitude: place.latitude,
+              longitude: place.longitude,
+            }))}
+            highlightedId={highlightedId}
+            onSelectPlace={setHighlightedId}
+          />
+
+          <AddPlaceControl
+            tripId={tripId}
+            stopId={stopId}
+            onAdded={(place) => setPlaces((prev) => [...prev, place])}
+          />
+
+          {places.length === 0 ? (
+            <p className="m-0 text-center text-[length:var(--text-sm)] text-text-muted">
+              Todavía no marcaste ningún lugar en {cityName}.
+            </p>
+          ) : (
+            <ul className="flex list-none flex-col gap-[var(--space-3)] p-0">
+              {places.map((place) => {
+                const isHighlighted = place.id === highlightedId;
+                return (
+                  <li key={place.id}>
+                    <div
+                      className={[
+                        "flex items-center gap-[var(--space-3)] rounded-lg px-[var(--space-4)] py-[var(--space-3)] transition-colors",
+                        isHighlighted ? "bg-primary text-text-on-primary" : "bg-surface-2 text-text",
+                      ].join(" ")}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setHighlightedId(place.id)}
+                        aria-pressed={isHighlighted}
+                        className={[
+                          "flex flex-1 items-center justify-between gap-[var(--space-3)] text-left",
+                          FOCUS_RING,
+                        ].join(" ")}
+                      >
+                        <span className="text-[length:var(--text-sm)] font-medium">{place.label}</span>
+                        <span className="font-mono text-[length:var(--text-xs)] uppercase tracking-[var(--tracking-eyebrow)] opacity-80">
+                          {PLACE_KIND_LABELS[place.kind as PlaceKind] ?? place.kind}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(place.id)}
+                        aria-label={`Eliminar ${place.label}`}
+                        className={[
+                          "rounded-sm opacity-70 hover:opacity-100",
+                          isHighlighted ? "text-text-on-primary" : "text-text-muted hover:text-alert",
+                          FOCUS_RING,
+                        ].join(" ")}
+                      >
+                        <Icon name="trash-2" size={16} />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );
