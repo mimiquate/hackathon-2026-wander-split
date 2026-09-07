@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { Card } from "@/components/core/Card";
-import { AvatarGroup } from "@/components/trip/AvatarGroup";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { findTripMembership } from "@/lib/trips/membership";
 import { getTripInvitePanel } from "@/lib/trips/invite";
 import { getTripEditPanel } from "@/lib/trips/update";
-import { crewCountLabel } from "@/lib/trips/format";
-import { CompartirDialog } from "./CompartirDialog";
-import { DatosViajeDialog } from "./DatosViajeDialog";
+import { TripShell, type TripTab } from "./TripShell";
+import { RutaPanel } from "./RutaPanel";
+import { GrupoTab } from "./GrupoTab";
+import { GastosStub } from "./GastosStub";
+import { BalanceStub } from "./BalanceStub";
 
 export const metadata: Metadata = { title: "Tu viaje — wonderSplit" };
 
@@ -28,10 +28,10 @@ export default async function TripPage({
   searchParams,
 }: {
   params: Promise<{ tripId: string }>;
-  searchParams: Promise<{ invite?: string }>;
+  searchParams: Promise<{ invite?: string; tab?: string }>;
 }) {
   const { tripId } = await params;
-  const { invite: inviteParam } = await searchParams;
+  const { invite: inviteParam, tab: tabParam } = await searchParams;
 
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/trips/${tripId}`)}`);
@@ -47,36 +47,30 @@ export default async function TripPage({
 
   const inviteUrl = await buildInviteUrl(panel.inviteToken);
 
+  // Default to "ruta" tab, or use tab param if provided
+  const defaultTab: TripTab = (tabParam as TripTab) || "ruta";
+
   return (
-    <div className="mx-auto flex min-h-svh max-w-[480px] flex-col justify-center gap-[var(--space-7)] px-[var(--gutter)] py-[var(--space-9)]">
-      <Card padding="lg" className="flex flex-col gap-[var(--space-6)]">
-        <DatosViajeDialog
-          tripId={tripId}
-          initialName={editPanel.name}
-          initialStartDate={editPanel.startDate}
-          canEditStartDate={editPanel.canEditStartDate}
-        />
-        <div className="flex items-center justify-between gap-[var(--space-4)]">
-          <div className="flex items-center gap-[var(--space-3)]">
-            <AvatarGroup
-              people={panel.members.map((member) => ({
-                name: member.displayName,
-                colorIndex: member.colorIndex,
-              }))}
-            />
-            <span className="text-[length:var(--text-sm)] text-text-muted">
-              {crewCountLabel(panel.members.length)}
-            </span>
-          </div>
-          <CompartirDialog
+    <TripShell
+      tripId={tripId}
+      tripName={editPanel.name}
+      tripStartDate={editPanel.startDate}
+      canEditStartDate={editPanel.canEditStartDate}
+      defaultTab={defaultTab}
+      children={{
+        ruta: <RutaPanel />,
+        grupo: (
+          <GrupoTab
             tripId={tripId}
             inviteUrl={inviteUrl}
             members={panel.members}
             initialPendingReservations={panel.pendingReservations}
-            defaultOpen={inviteParam === "1"}
+            defaultOpenInvite={inviteParam === "1"}
           />
-        </div>
-      </Card>
-    </div>
+        ),
+        gastos: <GastosStub />,
+        balance: <BalanceStub />,
+      }}
+    />
   );
 }
