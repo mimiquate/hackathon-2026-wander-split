@@ -1,0 +1,12 @@
+:root{
+  --ease-out:cubic-bezier(.2,.8,.3,1); /* @kind other */
+  --ease-standard:ease-out; /* @kind other */
+  --dur-fast:120ms; /* @kind other */
+  --dur-base:200ms; /* @kind other */
+  --dur-enter:500ms; /* @kind other */
+  --rise-distance:6px;
+}
+@keyframes ws-rise{from{opacity:0;transform:translateY(var(--rise-distance))}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}

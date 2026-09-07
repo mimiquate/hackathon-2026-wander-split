@@ -1,0 +1,65 @@
+/* Ruta Terracota — wonderSplit color system.
+   Light mode is the :root baseline. Dark is NOT an inversion: every accent is
+   lightened and slightly desaturated so it holds contrast on warm dark ground.
+   Product surfaces ship dark by default (add data-theme="dark" on <html>). */
+:root{
+  /* base palette — light */
+  --sand-100:#FFFCF5;--sand-200:#F3ECE0;--sand-300:#EDE1CE;--sand-400:#E2D5C0;
+  --coffee-900:#2E241B;--coffee-600:#6E5D4C;
+  --terracota-500:#C1682F;--olive-500:#7A8450;--ocre-500:#DA5F2C;--rosa-500:#D97A63;--cool-500:#6B7F8C;
+  /* base palette — dark */
+  --night-900:#1C1712;--night-800:#2A231C;--night-700:#362D22;--night-600:#4A3F33;
+  --sand-050:#EDE4D6;--sand-muted:#B7A996;
+  --terracota-300:#E38B52;--olive-300:#9CAB6E;--ocre-300:#F07C4E;--rosa-300:#E8998A;--cool-300:#8CA0AC;
+
+  /* semantic — light */
+  --bg:var(--sand-200);
+  --surface:var(--sand-100);
+  --surface-2:var(--sand-300);
+  --text:var(--coffee-900);
+  --text-muted:var(--coffee-600);
+  --text-on-primary:#FFFCF5;
+  --text-on-accent:#2E241B;
+  --text-on-alert:#FFF6EC;
+  --primary:var(--terracota-500);
+  --primary-hover:#A95724;
+  --primary-press:#8F4A1E;
+  --secondary:var(--olive-500);
+  --success:var(--olive-500);
+  --alert:var(--ocre-500);
+  --social:var(--rosa-500);
+  --cool:var(--cool-500);
+  --border:var(--sand-400);
+  --border-strong:#CFBEA3;
+  --focus-ring:var(--terracota-500);
+  --overlay:rgba(46,36,27,.42);
+
+  /* per-traveller avatar ramp (assign by person, not by role) */
+  --avatar-1:var(--terracota-500);--avatar-2:var(--olive-500);--avatar-3:var(--ocre-500);
+  --avatar-4:var(--rosa-500);--avatar-5:var(--cool-500);
+}
+
+[data-theme="dark"]{
+  --bg:var(--night-900);
+  --surface:var(--night-800);
+  --surface-2:var(--night-700);
+  --text:var(--sand-050);
+  --text-muted:var(--sand-muted);
+  --text-on-primary:#1C1712;
+  --text-on-accent:#1C1712;
+  --text-on-alert:#2A1109;
+  --primary:var(--terracota-300);
+  --primary-hover:#EE9A63;
+  --primary-press:#C87741;
+  --secondary:var(--olive-300);
+  --success:var(--olive-300);
+  --alert:var(--ocre-300);
+  --social:var(--rosa-300);
+  --cool:var(--cool-300);
+  --border:var(--night-600);
+  --border-strong:#5E5142;
+  --focus-ring:var(--terracota-300);
+  --overlay:rgba(0,0,0,.58);
+  --avatar-1:var(--terracota-300);--avatar-2:var(--olive-300);--avatar-3:var(--ocre-300);
+  --avatar-4:var(--rosa-300);--avatar-5:var(--cool-300);
+}

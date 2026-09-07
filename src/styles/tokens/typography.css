@@ -1,0 +1,31 @@
+:root{
+  --font-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --font-body:'Karla','Segoe UI',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+
+  /* sizes — body scale is a 1.125 ramp off 16px, display steps harder */
+  --text-eyebrow:0.72rem;
+  --text-xs:0.74rem;
+  --text-sm:0.82rem;
+  --text-base:1.02rem;
+  --text-md:1.15rem;
+  --text-lg:1.5rem;
+  --text-xl:2.3rem;
+  --text-display:3.4rem;
+
+  --leading-tight:1.15;
+  --leading-snug:1.3;
+  --leading-body:1.55;
+
+  --weight-regular:400;--weight-medium:500;--weight-semibold:600;--weight-bold:700;
+
+  --tracking-display:-0.01em;
+  --tracking-eyebrow:0.14em;
+  --tracking-label:0.1em;
+
+  /* semantic roles */
+  --type-title:var(--weight-bold) var(--text-display)/var(--leading-tight) var(--font-display);
+  --type-heading:var(--weight-semibold) var(--text-lg)/var(--leading-snug) var(--font-display);
+  --type-body:var(--weight-regular) var(--text-base)/var(--leading-body) var(--font-body);
+  --type-amount:var(--weight-medium) var(--text-base)/var(--leading-snug) var(--font-mono);
+}
